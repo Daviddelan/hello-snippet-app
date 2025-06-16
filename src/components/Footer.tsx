@@ -7,7 +7,6 @@ const Footer = () => {
       { name: 'Create Event', href: '#' },
       { name: 'Browse Events', href: '#' },
       { name: 'Mobile App', href: '#' },
-      { name: 'API Documentation', href: '#' },
     ],
     company: [
       { name: 'About Us', href: '#' },
@@ -30,10 +29,7 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { name: 'Facebook', icon: Facebook, href: '#' },
-    { name: 'Twitter', icon: Twitter, href: '#' },
     { name: 'Instagram', icon: Instagram, href: '#' },
-    { name: 'LinkedIn', icon: Linkedin, href: '#' },
   ];
 
   return (
