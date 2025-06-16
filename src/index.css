@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* React Image Crop Styles */
+.ReactCrop {
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  touch-action: none;
+}
+
+.ReactCrop *,
+.ReactCrop *::before,
+.ReactCrop *::after {
+  box-sizing: border-box;
+}
+
+.ReactCrop__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ReactCrop__crop-selection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate3d(0, 0, 0);
+  box-sizing: border-box;
+  cursor: move;
+  box-shadow: 0 0 0 9999em rgba(0, 0, 0, 0.5);
+  touch-action: none;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.ReactCrop__drag-handle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  outline: 1px solid transparent;
+}
+
+.ReactCrop__drag-handle::after {
+  position: absolute;
+  content: '';
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-sizing: border-box;
+}
+
+.ReactCrop__drag-handle--n {
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: n-resize;
+}
+
+.ReactCrop__drag-handle--ne {
+  top: -5px;
+  right: -5px;
+  cursor: ne-resize;
+}
+
+.ReactCrop__drag-handle--e {
+  top: 50%;
+  right: -5px;
+  margin-top: -5px;
+  cursor: e-resize;
+}
+
+.ReactCrop__drag-handle--se {
+  bottom: -5px;
+  right: -5px;
+  cursor: se-resize;
+}
+
+.ReactCrop__drag-handle--s {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: s-resize;
+}
+
+.ReactCrop__drag-handle--sw {
+  bottom: -5px;
+  left: -5px;
+  cursor: sw-resize;
+}
+
+.ReactCrop__drag-handle--w {
+  top: 50%;
+  left: -5px;
+  margin-top: -5px;
+  cursor: w-resize;
+}
+
+.ReactCrop__drag-handle--nw {
+  top: -5px;
+  left: -5px;
+  cursor: nw-resize;
+}
+
+.ReactCrop__drag-handle--disabled {
+  cursor: inherit;
+}
+
+.ReactCrop__rule-of-thirds-h::before,
+.ReactCrop__rule-of-thirds-h::after,
+.ReactCrop__rule-of-thirds-v::before,
+.ReactCrop__rule-of-thirds-v::after {
+  content: '';
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.ReactCrop__rule-of-thirds-h::before,
+.ReactCrop__rule-of-thirds-h::after {
+  width: 1px;
+  height: 100%;
+}
+
+.ReactCrop__rule-of-thirds-h::before {
+  left: 33.333%;
+}
+
+.ReactCrop__rule-of-thirds-h::after {
+  left: 66.666%;
+}
+
+.ReactCrop__rule-of-thirds-v::before,
+.ReactCrop__rule-of-thirds-v::after {
+  width: 100%;
+  height: 1px;
+}
+
+.ReactCrop__rule-of-thirds-v::before {
+  top: 33.333%;
+}
+
+.ReactCrop__rule-of-thirds-v::after {
+  top: 66.666%;
+}
