@@ -29,7 +29,7 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { name: 'Instagram', icon: Instagram, href: '#' },
+    { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/hello.snippet?igsh=MWl6bzV3ejE4OW9icw==' },
   ];
 
   return (
