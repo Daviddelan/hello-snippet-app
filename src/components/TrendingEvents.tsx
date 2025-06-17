@@ -5,12 +5,12 @@ const TrendingEvents = () => {
   const events = [
     {
       id: 1,
-      title: "Tech Innovation Summit 2024",
+      title: "VALUE INVESTMENT BOOTCAMP",
       date: "Mar 15, 2024",
-      location: "San Francisco, CA",
+      location: "Accra, Ghana",
       attendees: 2500,
-      rating: 4.9,
-      price: "$299",
+      rating: 4.3,
+      price: "GH₵ $299",
       image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934874/Screenshot_2025-06-03_at_7.14.25_AM_oaxjud.png"
     },
     {
