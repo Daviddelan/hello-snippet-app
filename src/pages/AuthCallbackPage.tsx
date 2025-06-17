@@ -12,42 +12,104 @@ const AuthCallbackPage = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the session from the URL hash
+        console.log('Auth callback page loaded');
+        console.log('Current URL:', window.location.href);
+        
+        // Handle the OAuth callback
         const { data, error } = await supabase.auth.getSession();
         
+        console.log('Session data:', data);
+        console.log('Session error:', error);
+        
         if (error) {
+          console.error('Session error:', error);
           throw error;
         }
 
         if (data.session) {
           const user = data.session.user;
+          console.log('User found in session:', user.email);
           
           // Check if user already has an organizer profile
           const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
           
           if (existingProfile) {
             // Existing user - redirect to dashboard
+            console.log('Existing organizer profile found, redirecting to dashboard');
             setStatus('success');
             setMessage('Welcome back! Redirecting to your dashboard...');
             setTimeout(() => navigate('/dashboard/organizer'), 2000);
           } else {
             // New user from Google OAuth - redirect to complete profile
+            console.log('No organizer profile found, redirecting to complete profile');
             setStatus('success');
             setMessage('Account created successfully! Please complete your profile...');
             setTimeout(() => navigate('/complete-profile'), 2000);
           }
         } else {
-          throw new Error('No session found');
+          console.log('No session found, checking URL hash for auth data');
+          
+          // Try to get session from URL hash (for OAuth redirects)
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          
+          if (accessToken) {
+            console.log('Access token found in URL hash, setting session');
+            // Let Supabase handle the session from the URL
+            const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError) {
+              throw sessionError;
+            }
+            
+            if (sessionData.session) {
+              // Retry the profile check
+              const user = sessionData.session.user;
+              const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
+              
+              if (existingProfile) {
+                setStatus('success');
+                setMessage('Welcome back! Redirecting to your dashboard...');
+                setTimeout(() => navigate('/dashboard/organizer'), 2000);
+              } else {
+                setStatus('success');
+                setMessage('Account created successfully! Please complete your profile...');
+                setTimeout(() => navigate('/complete-profile'), 2000);
+              }
+            } else {
+              throw new Error('Failed to establish session');
+            }
+          } else {
+            throw new Error('No authentication data found');
+          }
         }
       } catch (error) {
         console.error('Auth callback error:', error);
         setStatus('error');
-        setMessage('Authentication failed. Please try signing in again.');
-        setTimeout(() => navigate('/signin'), 3000);
+        
+        let errorMessage = 'Authentication failed. Please try signing in again.';
+        
+        if (error instanceof Error) {
+          if (error.message.includes('Invalid login credentials')) {
+            errorMessage = 'Invalid credentials. Please check your login information.';
+          } else if (error.message.includes('Email not confirmed')) {
+            errorMessage = 'Please check your email and confirm your account before signing in.';
+          } else if (error.message.includes('access_denied')) {
+            errorMessage = 'Access denied. You may have cancelled the Google sign-in process.';
+          } else {
+            errorMessage = `Authentication error: ${error.message}`;
+          }
+        }
+        
+        setMessage(errorMessage);
+        setTimeout(() => navigate('/signin'), 5000);
       }
     };
 
-    handleAuthCallback();
+    // Add a small delay to ensure the URL is fully loaded
+    const timer = setTimeout(handleAuthCallback, 500);
+    
+    return () => clearTimeout(timer);
   }, [navigate]);
 
   return (
@@ -87,12 +149,17 @@ const AuthCallbackPage = () => {
           )}
 
           {status === 'error' && (
-            <button
-              onClick={() => navigate('/signin')}
-              className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300"
-            >
-              Back to Sign In
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate('/signin')}
+                className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300"
+              >
+                Back to Sign In
+              </button>
+              <p className="text-sm text-gray-500">
+                You will be automatically redirected in a few seconds
+              </p>
+            </div>
           )}
         </div>
       </div>

@@ -3,6 +3,18 @@ import type { OrganizerSignupData, Organizer } from '../lib/supabase';
 
 export class OrganizerService {
   /**
+   * Get the correct redirect URL for the current environment
+   */
+  private static getRedirectUrl(): string {
+    // In production, use the current origin
+    // In development, use localhost
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/auth/callback`;
+    }
+    return '/auth/callback';
+  }
+
+  /**
    * Sign up a new organizer with authentication and profile creation
    */
   static async signUpOrganizer(data: OrganizerSignupData) {
@@ -20,7 +32,7 @@ export class OrganizerService {
             last_name: data.lastName,
             organization_name: data.organizationName,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: this.getRedirectUrl()
         }
       });
 

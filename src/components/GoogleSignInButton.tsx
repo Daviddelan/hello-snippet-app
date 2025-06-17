@@ -17,14 +17,24 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
+  /**
+   * Get the correct redirect URL for the current environment
+   */
+  const getRedirectUrl = (): string => {
+    // Always use the current origin to avoid localhost redirects in production
+    return `${window.location.origin}/auth/callback`;
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
       
+      console.log('Starting Google OAuth with redirect URL:', getRedirectUrl());
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: getRedirectUrl(),
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -36,6 +46,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         throw error;
       }
 
+      console.log('Google OAuth initiated successfully');
       // The redirect will handle the success case
       // onSuccess will be called after redirect in the callback handler
       
