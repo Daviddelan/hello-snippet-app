@@ -25,7 +25,7 @@ const LiveEvents = () => {
     },
     {
       id: 2,
-      title: "Edenic Worship Experience '25'",
+      title: "Edenic Worship Experience '25",
       organizer: "ICGC Calvary Temple",
       location: "Spintex Road, Accra",
       startTime: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
