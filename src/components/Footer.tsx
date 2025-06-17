@@ -7,6 +7,7 @@ const Footer = () => {
       { name: 'Create Event', href: '#' },
       { name: 'Browse Events', href: '#' },
       { name: 'Mobile App', href: '#' },
+      { name: 'API Documentation', href: '#' },
     ],
     company: [
       { name: 'About Us', href: '#' },
@@ -14,10 +15,25 @@ const Footer = () => {
       { name: 'Press Kit', href: '#' },
       { name: 'Contact', href: '#' },
     ],
+    resources: [
+      { name: 'Help Center', href: '#' },
+      { name: 'Community', href: '#' },
+      { name: 'Event Planning Guide', href: '#' },
+      { name: 'Blog', href: '#' },
+    ],
+    legal: [
+      { name: 'Privacy Policy', href: '#' },
+      { name: 'Terms of Service', href: '#' },
+      { name: 'Cookie Policy', href: '#' },
+      { name: 'GDPR', href: '#' },
+    ],
   };
 
   const socialLinks = [
-    { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/hello.snippet?igsh=MWl6bzV3ejE4OW9icw==' },
+    { name: 'Facebook', icon: Facebook, href: '#' },
+    { name: 'Twitter', icon: Twitter, href: '#' },
+    { name: 'Instagram', icon: Instagram, href: '#' },
+    { name: 'LinkedIn', icon: Linkedin, href: '#' },
   ];
 
   return (
@@ -42,23 +58,15 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-200">
                 <Mail className="w-4 h-4 mr-3" />
-                <span>info@hello-snippet.com</span>
+                <span>hello@hellsnippet.com</span>
               </div>
               <div className="flex items-center text-gray-200">
                 <Phone className="w-4 h-4 mr-3" />
-                <span>+233 (026) 554-4837</span>
-              </div>
-              <div className="flex items-center text-gray-200">
-                <Phone className="w-4 h-4 mr-3" />
-                <span>+233 (050) 715-0959</span>
-              </div>
-              <div className="flex items-center text-gray-200">
-                <Phone className="w-4 h-4 mr-3" />
-                <span>+233 (059) 811-4707</span>
+                <span>+1 (555) 123-4567</span>
               </div>
               <div className="flex items-center text-gray-200">
                 <MapPin className="w-4 h-4 mr-3" />
-                <span>Ashesi, Berekuso</span>
+                <span>San Francisco, CA</span>
               </div>
             </div>
           </div>
@@ -137,7 +145,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             {/* Copyright */}
             <div className="text-gray-200 mb-4 md:mb-0">
-              © 2025 HelloSnippet. All rights reserved.
+              © 2024 HelloSnippet. All rights reserved.
             </div>
 
             {/* Social Links */}
