@@ -36,7 +36,7 @@ const LiveEvents = () => {
     },
     {
       id: 3,
-      title: "Behold Your God '25'",
+      title: "Behold Your God '25",
       organizer: "The Worshipping Warriors & Korle-Bu Christian Network",
       location: "Accra, Ghana",
       startTime: new Date(Date.now() - 30 * 60 * 1000), // Started 30 minutes ago
