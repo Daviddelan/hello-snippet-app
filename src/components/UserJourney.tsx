@@ -18,14 +18,6 @@ const UserJourney = () => {
       features: ["Event Discovery", "Social Networking", "Personalized Recommendations", "Easy Booking"],
       color: "from-secondary-500 to-secondary-600",
       linkTo: "/signup/attendee"
-    },
-    {
-      icon: Building2,
-      title: "Corporate Users",
-      description: "Streamline corporate events, team building, and professional networking with enterprise solutions.",
-      features: ["Corporate Events", "Team Management", "Budget Tracking", "Compliance Tools"],
-      color: "from-purple-500 to-pink-500",
-      linkTo: "/signup/corporate"
     }
   ];
 
