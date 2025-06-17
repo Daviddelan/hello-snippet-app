@@ -25,9 +25,9 @@ const LiveEvents = () => {
     },
     {
       id: 2,
-      title: "Tech Startup Pitch Night",
-      organizer: "Innovation Hub",
-      location: "Downtown Convention Center",
+      title: "Edenic Worship Experience '25'",
+      organizer: "ICGC Calvary Temple",
+      location: "Spintex Road, Accra",
       startTime: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
       attendees: 234,
       maxAttendees: 300,
@@ -36,9 +36,9 @@ const LiveEvents = () => {
     },
     {
       id: 3,
-      title: "Photography Workshop",
-      organizer: "Creative Lens Studio",
-      location: "Art District Gallery",
+      title: "Behold Your God '25'",
+      organizer: "The Worshipping Warriors & Korle-Bu Christian Network",
+      location: "Accra, Ghana",
       startTime: new Date(Date.now() - 30 * 60 * 1000), // Started 30 minutes ago
       attendees: 45,
       maxAttendees: 50,
