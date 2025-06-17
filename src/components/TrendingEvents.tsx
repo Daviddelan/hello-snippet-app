@@ -17,7 +17,7 @@ const TrendingEvents = () => {
       id: 2,
       title: "Digital Marketing Masterclass",
       date: "Mar 20, 2024",
-      location: "New York, NY",
+      location: "Ashesi University, Berekuso",
       attendees: 800,
       rating: 4.8,
       price: "₵10",
@@ -25,9 +25,9 @@ const TrendingEvents = () => {
     },
     {
       id: 3,
-      title: "Startup Founders Networking",
+      title: "Fire Festival",
       date: "Mar 25, 2024",
-      location: "Austin, TX",
+      location: "Evans Anfom Auditorium Complex",
       attendees: 300,
       rating: 4.7,
       price: "Free",
@@ -35,22 +35,22 @@ const TrendingEvents = () => {
     },
     {
       id: 4,
-      title: "AI & Machine Learning Conference",
-      date: "Apr 2, 2024",
-      location: "Seattle, WA",
+      title: "CHAYIL CONFERENCE 2025",
+      date: "July 2, 2024",
+      location: "Tema, Ghana",
       attendees: 1500,
       rating: 4.9,
-      price: "₵10",
+      price: "₵50",
       image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934599/Screenshot_2025-06-03_at_7.09.51_AM_xc61uv.png"
     },
     {
       id: 5,
-      title: "Creative Design Workshop",
-      date: "Apr 8, 2024",
-      location: "Los Angeles, CA",
+      title: "Invasion 2025",
+      date: "Jun 22, 2024",
+      location: "University Of Ghana Sports Stadium",
       attendees: 200,
       rating: 4.6,
-      price: "₵10",
+      price: "Free",
       image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934359/Screenshot_2025-06-03_at_7.05.49_AM_jwfkdz.png"
     }
   ];
