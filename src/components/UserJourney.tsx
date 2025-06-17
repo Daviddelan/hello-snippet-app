@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, Building2, ArrowRight } from 'lucide-react';
+import { Calendar, Users, ArrowRight } from 'lucide-react';
 
 const UserJourney = () => {
   const userTypes = [
@@ -38,46 +38,49 @@ const UserJourney = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {userTypes.map((userType, index) => {
-            const IconComponent = userType.icon;
-            return (
-              <div key={index} className="group">
-                <div className="relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-full">
-                  {/* Gradient Background */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${userType.color} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500`}></div>
-                  
-                  {/* Icon */}
-                  <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${userType.color} rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="w-8 h-8 text-white" />
+        {/* Centered grid with max-width constraint */}
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
+            {userTypes.map((userType, index) => {
+              const IconComponent = userType.icon;
+              return (
+                <div key={index} className="group">
+                  <div className="relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 h-full">
+                    {/* Gradient Background */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${userType.color} opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500`}></div>
+                    
+                    {/* Icon */}
+                    <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${userType.color} rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-8 h-8 text-white" />
+                    </div>
+
+                    {/* Content */}
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">{userType.title}</h3>
+                    <p className="text-gray-600 mb-6 leading-relaxed">{userType.description}</p>
+
+                    {/* Features */}
+                    <ul className="space-y-3 mb-6">
+                      {userType.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className="flex items-center text-sm text-gray-700">
+                          <div className="w-2 h-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full mr-3"></div>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA Button */}
+                    <button 
+                      onClick={() => handleGetStarted(userType.linkTo)}
+                      className="group/btn inline-flex items-center justify-center w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                    >
+                      <span>Get Started</span>
+                      <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
+                    </button>
                   </div>
-
-                  {/* Content */}
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">{userType.title}</h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">{userType.description}</p>
-
-                  {/* Features */}
-                  <ul className="space-y-3 mb-6">
-                    {userType.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-gray-700">
-                        <div className="w-2 h-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full mr-3"></div>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* CTA Button */}
-                  <button 
-                    onClick={() => handleGetStarted(userType.linkTo)}
-                    className="group/btn inline-flex items-center justify-center w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer"
-                  >
-                    <span>Get Started</span>
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform duration-200" />
-                  </button>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
