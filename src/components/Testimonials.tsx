@@ -11,7 +11,7 @@ const Testimonials = () => {
       role: "Event Organizer",
       company: "Creative Conferences Inc.",
       rating: 5,
-      text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%! I would strongly recommend this innovative solution for any event organizer out there. You all should hop on to this.
+      text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%! I would strongly recommend this innovative solution for any event organizer out there. You all should hop on to this."
       avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154128/Screenshot_2025-06-17_at_9.55.20_AM_osi3ve.png"
     },
     {
