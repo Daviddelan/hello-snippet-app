@@ -7,12 +7,12 @@ const Testimonials = () => {
   const testimonials = [
     {
       id: 1,
-      name: "Sarah Johnson",
+      name: "Jesse Nii Adjetey",
       role: "Event Organizer",
       company: "Creative Conferences Inc.",
       rating: 5,
-      text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%!",
-      avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100"
+      text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%! I would strongly recommend this innovative solution for any event organizer out there. Y'all should hop on to this.
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154128/Screenshot_2025-06-17_at_9.55.20_AM_osi3ve.png"
     },
     {
       id: 2,
