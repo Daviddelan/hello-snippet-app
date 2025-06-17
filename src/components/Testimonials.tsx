@@ -9,7 +9,7 @@ const Testimonials = () => {
       id: 1,
       name: "Jesse Nii Adjetey",
       role: "Event Organizer",
-      company: "Creative Conferences Inc.",
+      company: "Malleabite",
       rating: 5,
       text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%! I would strongly recommend this innovative solution for any event organizer out there. You all should hop on to this.",
       avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154128/Screenshot_2025-06-17_at_9.55.20_AM_osi3ve.png"
@@ -18,7 +18,7 @@ const Testimonials = () => {
       id: 2,
       name: "David Dela Nuworkpor",
       role: "Event Organizer",
-      company: "TechCorp Solutions",
+      company: "DNYD Corp",
       rating: 5,
       text: "Managing all the different events that we hold, right from the  corporate events to the non corporate ones have never been easier. The analytics dashboard gives us insights we never had before, helping us improve every event.",
       avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154412/Screenshot_2025-06-17_at_10.00.03_AM_wtzdqq.png"
@@ -35,10 +35,10 @@ const Testimonials = () => {
     {
       id: 4,
       name: "Reverend Ernest Keith",
-      role: "Resident Pastor",
-      company: "Innovation Hub",
+      role: "Entrepreneur",
+      company: "Hello Grill",
       rating: 5,
-      text: "The attendee experience is phenomenal. People love how easy it is to discover and join the different events we hold in addition to our church services. Our community has grown tremendously!",
+      text: "The attendee experience is phenomenal. People love how easy it is to discover and join the different events we hold in addition to our delicious food we serve. Our community has grown tremendously!",
       avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154552/Screenshot_2025-06-17_at_10.02.24_AM_hn5aq6.png"
     }
   ];
