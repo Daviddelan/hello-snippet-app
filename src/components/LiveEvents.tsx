@@ -14,8 +14,8 @@ const LiveEvents = () => {
   const liveEvents = [
     {
       id: 1,
-      title: "Digital Marketing Masterclass",
-      organizer: "Marketing Pro Academy",
+      title: "Despite Automobile Museum Inauguration",
+      organizer: "Despite Group of Companies",
       location: "Virtual Event",
       startTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
       attendees: 847,
