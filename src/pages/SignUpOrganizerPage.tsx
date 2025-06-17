@@ -107,6 +107,8 @@ const SignUpOrganizerPage = () => {
     setSubmitStatus({ type: null, message: '' });
 
     try {
+      console.log('Starting organizer signup process...');
+      
       // Prepare data for submission
       const signupData: OrganizerSignupData = {
         firstName: formData.firstName.trim(),
@@ -119,8 +121,12 @@ const SignUpOrganizerPage = () => {
         eventTypes: formData.eventTypes
       };
 
+      console.log('Submitting signup data:', { ...signupData, password: '[REDACTED]' });
+
       // Submit to database
       const result = await OrganizerService.signUpOrganizer(signupData);
+
+      console.log('Signup result:', result);
 
       if (result.success) {
         setSubmitStatus({
@@ -144,10 +150,12 @@ const SignUpOrganizerPage = () => {
 
         // Redirect to success page or login after a delay
         setTimeout(() => {
+          console.log('Redirecting to signin page...');
           navigate('/signin?message=Please check your email to verify your account');
         }, 3000);
 
       } else {
+        console.error('Signup failed:', result.error);
         setSubmitStatus({
           type: 'error',
           message: result.error || 'An error occurred during signup'
@@ -165,6 +173,7 @@ const SignUpOrganizerPage = () => {
   };
 
   const handleGoogleSuccess = (user: any) => {
+    console.log('Google signup successful:', user?.email);
     setSubmitStatus({
       type: 'success',
       message: 'Google sign-up successful! Redirecting...'
@@ -172,6 +181,7 @@ const SignUpOrganizerPage = () => {
   };
 
   const handleGoogleError = (error: string) => {
+    console.error('Google signup error:', error);
     setSubmitStatus({
       type: 'error',
       message: `Google sign-up failed: ${error}`

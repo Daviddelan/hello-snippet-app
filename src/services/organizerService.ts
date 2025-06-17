@@ -7,7 +7,10 @@ export class OrganizerService {
    */
   static async signUpOrganizer(data: OrganizerSignupData) {
     try {
+      console.log('Starting organizer signup process...');
+      
       // Step 1: Create user account with Supabase Auth
+      console.log('Creating auth user...');
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -16,19 +19,25 @@ export class OrganizerService {
             first_name: data.firstName,
             last_name: data.lastName,
             organization_name: data.organizationName,
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
 
       if (authError) {
+        console.error('Auth error:', authError);
         throw new Error(`Authentication error: ${authError.message}`);
       }
 
       if (!authData.user) {
+        console.error('No user returned from auth signup');
         throw new Error('User creation failed');
       }
 
+      console.log('Auth user created successfully:', authData.user.email);
+
       // Step 2: Create organizer profile
+      console.log('Creating organizer profile...');
       const organizerProfile = {
         id: authData.user.id,
         first_name: data.firstName,
@@ -54,6 +63,8 @@ export class OrganizerService {
         throw new Error(`Profile creation error: ${profileError.message}`);
       }
 
+      console.log('Organizer profile created successfully:', profileData.organization_name);
+
       return {
         success: true,
         user: authData.user,
@@ -63,9 +74,27 @@ export class OrganizerService {
 
     } catch (error) {
       console.error('Organizer signup error:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = 'An unexpected error occurred';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('User already registered')) {
+          errorMessage = 'An account with this email already exists. Please sign in instead.';
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = 'Please enter a valid email address.';
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = 'Password must be at least 6 characters long.';
+        } else if (error.message.includes('Profile creation error')) {
+          errorMessage = 'Account created but profile setup failed. Please try completing your profile after signing in.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'An unexpected error occurred'
+        error: errorMessage
       };
     }
   }
