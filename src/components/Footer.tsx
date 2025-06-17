@@ -7,33 +7,19 @@ const Footer = () => {
       { name: 'Create Event', href: '#' },
       { name: 'Browse Events', href: '#' },
       { name: 'Mobile App', href: '#' },
-      { name: 'API Documentation', href: '#' },
     ],
     company: [
       { name: 'About Us', href: '#' },
       { name: 'Careers', href: '#' },
-      { name: 'Press Kit', href: '#' },
       { name: 'Contact', href: '#' },
-    ],
-    resources: [
-      { name: 'Help Center', href: '#' },
-      { name: 'Community', href: '#' },
-      { name: 'Event Planning Guide', href: '#' },
-      { name: 'Blog', href: '#' },
     ],
     legal: [
       { name: 'Privacy Policy', href: '#' },
-      { name: 'Terms of Service', href: '#' },
-      { name: 'Cookie Policy', href: '#' },
-      { name: 'GDPR', href: '#' },
-    ],
+      { name: 'Terms of Service', href: '#' },    ],
   };
 
   const socialLinks = [
-    { name: 'Facebook', icon: Facebook, href: '#' },
-    { name: 'Twitter', icon: Twitter, href: '#' },
-    { name: 'Instagram', icon: Instagram, href: '#' },
-    { name: 'LinkedIn', icon: Linkedin, href: '#' },
+    { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/hello.snippet?igsh=MWl6bzV3ejE4OW9icw==' },
   ];
 
   return (
@@ -62,11 +48,19 @@ const Footer = () => {
               </div>
               <div className="flex items-center text-gray-200">
                 <Phone className="w-4 h-4 mr-3" />
-                <span>+1 (555) 123-4567</span>
+                <span>+233 (026) 554-4837</span>
+              </div>
+              <div className="flex items-center text-gray-200">
+                <Phone className="w-4 h-4 mr-3" />
+                <span>+233 (026) 531-2612</span>
+              </div>
+              <div className="flex items-center text-gray-200">
+                <Phone className="w-4 h-4 mr-3" />
+                <span>+233 (050) 715-0959</span>
               </div>
               <div className="flex items-center text-gray-200">
                 <MapPin className="w-4 h-4 mr-3" />
-                <span>Ashesi University, Berekuso</span>
+                <span>San Francisco, CA</span>
               </div>
             </div>
           </div>
@@ -93,23 +87,6 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <a 
-                    href={link.href} 
-                    className="text-gray-200 hover:text-white transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Resources</h3>
-            <ul className="space-y-3">
-              {footerLinks.resources.map((link) => (
                 <li key={link.name}>
                   <a 
                     href={link.href} 
