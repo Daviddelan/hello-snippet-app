@@ -7,19 +7,33 @@ const Footer = () => {
       { name: 'Create Event', href: '#' },
       { name: 'Browse Events', href: '#' },
       { name: 'Mobile App', href: '#' },
+      { name: 'API Documentation', href: '#' },
     ],
     company: [
       { name: 'About Us', href: '#' },
       { name: 'Careers', href: '#' },
+      { name: 'Press Kit', href: '#' },
       { name: 'Contact', href: '#' },
+    ],
+    resources: [
+      { name: 'Help Center', href: '#' },
+      { name: 'Community', href: '#' },
+      { name: 'Event Planning Guide', href: '#' },
+      { name: 'Blog', href: '#' },
     ],
     legal: [
       { name: 'Privacy Policy', href: '#' },
-      { name: 'Terms of Service', href: '#' },    ],
+      { name: 'Terms of Service', href: '#' },
+      { name: 'Cookie Policy', href: '#' },
+      { name: 'GDPR', href: '#' },
+    ],
   };
 
   const socialLinks = [
-    { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/hello.snippet?igsh=MWl6bzV3ejE4OW9icw==' },
+    { name: 'Facebook', icon: Facebook, href: '#' },
+    { name: 'Twitter', icon: Twitter, href: '#' },
+    { name: 'Instagram', icon: Instagram, href: '#' },
+    { name: 'LinkedIn', icon: Linkedin, href: '#' },
   ];
 
   return (
@@ -52,7 +66,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center text-gray-200">
                 <MapPin className="w-4 h-4 mr-3" />
-                <span>San Francisco, CA</span>
+                <span>Ashesi University, Berekuso</span>
               </div>
             </div>
           </div>
@@ -79,6 +93,23 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Company</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
+                <li key={link.name}>
+                  <a 
+                    href={link.href} 
+                    className="text-gray-200 hover:text-white transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Resources Links */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Resources</h3>
+            <ul className="space-y-3">
+              {footerLinks.resources.map((link) => (
                 <li key={link.name}>
                   <a 
                     href={link.href} 
