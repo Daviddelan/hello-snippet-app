@@ -9,7 +9,7 @@ const HeroCarousel = () => {
       id: 1,
       organizer: "TechVision Events",
       organizerAvatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
-      price: Free,
+      price: 0,
       image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933697/Screenshot_2025-06-03_at_6.54.43_AM_vpxpy7.png",
     },
     {
