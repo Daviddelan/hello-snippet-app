@@ -11,7 +11,7 @@ const TrendingEvents = () => {
       attendees: 2500,
       rating: 4.9,
       price: "$299",
-      image: "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934874/Screenshot_2025-06-03_at_7.14.25_AM_oaxjud.png"
     },
     {
       id: 2,
@@ -21,7 +21,7 @@ const TrendingEvents = () => {
       attendees: 800,
       rating: 4.8,
       price: "$149",
-      image: "https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934755/Screenshot_2025-06-03_at_7.12.23_AM_eh4kma.png"
     },
     {
       id: 3,
@@ -31,7 +31,7 @@ const TrendingEvents = () => {
       attendees: 300,
       rating: 4.7,
       price: "Free",
-      image: "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934638/Screenshot_2025-06-03_at_7.10.30_AM_kkf845.png"
     },
     {
       id: 4,
@@ -41,7 +41,7 @@ const TrendingEvents = () => {
       attendees: 1500,
       rating: 4.9,
       price: "$399",
-      image: "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934599/Screenshot_2025-06-03_at_7.09.51_AM_xc61uv.png"
     },
     {
       id: 5,
@@ -51,7 +51,7 @@ const TrendingEvents = () => {
       attendees: 200,
       rating: 4.6,
       price: "$99",
-      image: "https://images.pexels.com/photos/3184305/pexels-photo-3184305.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934359/Screenshot_2025-06-03_at_7.05.49_AM_jwfkdz.png"
     }
   ];
 
