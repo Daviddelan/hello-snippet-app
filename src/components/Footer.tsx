@@ -14,18 +14,6 @@ const Footer = () => {
       { name: 'Press Kit', href: '#' },
       { name: 'Contact', href: '#' },
     ],
-    resources: [
-      { name: 'Help Center', href: '#' },
-      { name: 'Community', href: '#' },
-      { name: 'Event Planning Guide', href: '#' },
-      { name: 'Blog', href: '#' },
-    ],
-    legal: [
-      { name: 'Privacy Policy', href: '#' },
-      { name: 'Terms of Service', href: '#' },
-      { name: 'Cookie Policy', href: '#' },
-      { name: 'GDPR', href: '#' },
-    ],
   };
 
   const socialLinks = [
