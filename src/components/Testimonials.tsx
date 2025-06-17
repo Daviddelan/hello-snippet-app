@@ -16,30 +16,30 @@ const Testimonials = () => {
     },
     {
       id: 2,
-      name: "Michael Chen",
-      role: "Corporate Event Manager",
+      name: "David Dela Nuworkpor",
+      role: "Event Organizer",
       company: "TechCorp Solutions",
       rating: 5,
-      text: "Managing corporate events has never been easier. The analytics dashboard gives us insights we never had before, helping us improve every event.",
-      avatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100"
+      text: "Managing all the different events that we hold, right from the  corporate events to the non corporate ones have never been easier. The analytics dashboard gives us insights we never had before, helping us improve every event.",
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154412/Screenshot_2025-06-17_at_10.00.03_AM_wtzdqq.png"
     },
     {
       id: 3,
-      name: "Emma Rodriguez",
-      role: "Community Manager",
-      company: "Local Events Network",
+      name: "Patrick Awuah",
+      role: "President",
+      company: "Ashesi University",
       rating: 5,
-      text: "The attendee experience is phenomenal. People love how easy it is to discover and join events. Our community has grown tremendously!",
-      avatar: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100"
+      text: "As the President of Ashesi University startup, we needed an affordable yet professional solution. HelloSnippet exceeded our expectations and helped us host successful networking events.",
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154577/Screenshot_2025-06-17_at_10.02.50_AM_mtvlnj.png"
     },
     {
       id: 4,
-      name: "David Park",
-      role: "Startup Founder",
+      name: "Reverend Ernest Keith",
+      role: "Resident Pastor",
       company: "Innovation Hub",
       rating: 5,
-      text: "As a startup, we needed an affordable yet professional solution. HelloSnippet exceeded our expectations and helped us host successful networking events.",
-      avatar: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100"
+      text: "The attendee experience is phenomenal. People love how easy it is to discover and join the different events we hold in addition to our church services. Our community has grown tremendously!",
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154552/Screenshot_2025-06-17_at_10.02.24_AM_hn5aq6.png"
     }
   ];
 
