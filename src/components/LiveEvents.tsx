@@ -21,7 +21,7 @@ const LiveEvents = () => {
       attendees: 847,
       maxAttendees: 1000,
       status: "starting-soon",
-      image: "https://images.pexels.com/photos/3184306/pexels-photo-3184306.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933697/Screenshot_2025-06-03_at_6.54.43_AM_vpxpy7.png"
     },
     {
       id: 2,
@@ -32,7 +32,7 @@ const LiveEvents = () => {
       attendees: 234,
       maxAttendees: 300,
       status: "starting-soon",
-      image: "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933849/Screenshot_2025-06-03_at_6.57.10_AM_dyse09.png"
     },
     {
       id: 3,
@@ -43,7 +43,7 @@ const LiveEvents = () => {
       attendees: 45,
       maxAttendees: 50,
       status: "live",
-      image: "https://images.pexels.com/photos/3184305/pexels-photo-3184305.jpeg?auto=compress&cs=tinysrgb&w=400"
+      image: "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934175/Screenshot_2025-06-03_at_7.02.29_AM_dftvlw.png"
     }
   ];
 
