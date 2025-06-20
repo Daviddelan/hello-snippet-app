@@ -1,7 +1,9 @@
 import React from 'react';
 import { Calendar, MapPin, Users, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const TrendingEvents = () => {
+  const navigate = useNavigate();
   const events = [
     {
       id: 1,
@@ -120,7 +122,10 @@ const TrendingEvents = () => {
                     </div>
 
                     {/* CTA Button */}
-                    <button className="w-full mt-4 bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <button 
+                      className="w-full mt-4 bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                      onClick={() => navigate(`/event/${event.id}`)}
+                    >
                       Register Now
                     </button>
                   </div>

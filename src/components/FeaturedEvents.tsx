@@ -1,7 +1,9 @@
 import React from 'react';
 import { Calendar, MapPin, Users, Star, Clock, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const FeaturedEvents = () => {
+  const navigate = useNavigate();
   const featuredEvents = [
     {
       id: 1,
@@ -178,7 +180,10 @@ const FeaturedEvents = () => {
                   </div>
 
                   {/* CTA Button */}
-                  <button className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                  <button 
+                    className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                    onClick={() => navigate(`/event/${event.id}`)}
+                  >
                     Register Now
                   </button>
                 </div>
@@ -187,13 +192,7 @@ const FeaturedEvents = () => {
           ))}
         </div>
 
-        {/* Mobile View All Button */}
-        <div className="text-center mt-8 lg:hidden">
-          <button className="inline-flex items-center text-primary-500 font-semibold hover:text-secondary-500 transition-colors group">
-            View All Events
-            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
+        {/* Removed duplicate scroll button for mobile */}
       </div>
     </section>
   );

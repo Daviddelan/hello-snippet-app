@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Clock, Zap, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LiveEvents = () => {
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -148,11 +150,14 @@ const LiveEvents = () => {
                   </div>
 
                   {/* CTA Button */}
-                  <button className={`w-full text-white py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
-                    event.status === 'live' 
-                      ? 'bg-red-500 hover:bg-red-600' 
-                      : 'bg-orange-500 hover:bg-orange-600'
-                  }`}>
+                  <button 
+                    className={`w-full text-white py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
+                      event.status === 'live' 
+                        ? 'bg-red-500 hover:bg-red-600' 
+                        : 'bg-orange-500 hover:bg-orange-600'
+                    }`}
+                    onClick={() => navigate(`/event/${event.id}`)}
+                  >
                     {event.status === 'live' ? 'Join Now' : 'Get Ready'}
                   </button>
                 </div>

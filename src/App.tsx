@@ -8,13 +8,16 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 import CompleteProfilePage from './pages/CompleteProfilePage';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import LandingPage from './pages/LandingPage';
+import EventDetailsPage from './pages/EventDetailsPage';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/discover" element={<DiscoverPage />} />
+        <Route path="/HomePage" element={<HomePage />} />
         <Route path="/signup/organizer" element={<SignUpOrganizerPage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
@@ -27,6 +30,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route path="/event/:id" element={<EventDetailsPage />} />
       </Routes>
     </Router>
   );
