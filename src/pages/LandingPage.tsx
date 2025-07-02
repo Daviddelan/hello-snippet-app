@@ -175,8 +175,8 @@ const LandingPage = () => {
           Get Started
         </a>
       </nav>
-      {/* 🎯 FULL WIDTH HERO SECTION */}
-      <section className="flex flex-col items-center justify-center text-center pt-48 pb-28 px-4 relative min-h-[700px] w-full">
+      {/* 🎯 FULL WIDTH HERO SECTION - FILLS ENTIRE PAGE */}
+      <section className="w-full min-h-screen flex flex-col items-center justify-center text-center pt-48 pb-28 px-0 relative">
         {/* Purple clock image as hero accent */}
         <img
           src="/clock-purple.jpg"
@@ -207,18 +207,19 @@ const LandingPage = () => {
             style={{ filter: "blur(140px)" }}
           ></div>
         </div>
-        {/* 🔥 FULL WIDTH CONTENT CONTAINER */}
-        <div className="relative z-20 w-full max-w-7xl mx-auto px-6 lg:px-14 py-14 rounded-3xl bg-white/70 shadow-2xl backdrop-blur-2xl border border-purple-200 animate-fade-in-up">
-          {/* 📝 MAIN HEADING - THIS IS WHAT YOU SEE IN THE SCREENSHOT */}
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-extrabold mb-7 text-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in">
+        
+        {/* 🔥 FULL WIDTH CONTENT - NO MAX WIDTH CONSTRAINTS */}
+        <div className="relative z-20 w-full px-8 lg:px-16 xl:px-24 py-14 rounded-3xl bg-white/70 shadow-2xl backdrop-blur-2xl border border-purple-200 animate-fade-in-up mx-4">
+          {/* 📝 MAIN HEADING - FILLS FULL WIDTH */}
+          <h1 className="text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold mb-7 text-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in leading-tight">
             Plan events and book tickets —{" "}
             <span className="bg-gradient-to-r from-purple-400 via-purple-600 to-purple-800 bg-clip-text text-transparent">
               the smart way
             </span>
             .
           </h1>
-          {/* 📝 DESCRIPTION TEXT - THIS IS THE PARAGRAPH BELOW THE HEADING */}
-          <p className="text-2xl md:text-3xl lg:text-4xl mb-12 max-w-5xl mx-auto text-gray-700 animate-fade-in delay-100 font-['Inter']">
+          {/* 📝 DESCRIPTION TEXT - FULL WIDTH */}
+          <p className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl mb-12 w-full text-gray-700 animate-fade-in delay-100 font-['Inter'] leading-relaxed">
             Welcome to Hello Snippet: the trusted, easy-to-use ticketing
             platform that makes event planning and attending smoother, safer,
             and smarter.
@@ -239,8 +240,8 @@ const LandingPage = () => {
             </a>
           </div>
           {/* Testimonial and trusted-by badge - FULL WIDTH LAYOUT */}
-          <div className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-20">
-            <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center max-w-md animate-fade-in-up">
+          <div className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-20 w-full">
+            <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center flex-1 max-w-md animate-fade-in-up">
               <div className="text-purple-600 text-4xl mb-2">
                 <Star size={32} className="inline-block text-yellow-400 mr-1" />
                 "
