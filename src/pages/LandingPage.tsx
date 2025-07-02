@@ -94,7 +94,7 @@ const ScrollToTop = () => {
 
 const LandingPage = () => {
   return (
-    <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 min-h-screen text-gray-900 relative">
+    <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 min-h-screen text-gray-900 relative overflow-x-hidden">
       {/* Animated SVG background blobs */}
       <svg
         className="absolute top-[-120px] left-[-120px] w-[600px] h-[600px] z-0 animate-float-slow"
@@ -175,8 +175,8 @@ const LandingPage = () => {
           Get Started
         </a>
       </nav>
-      {/* 🎯 FULL WIDTH HERO SECTION - FILLS ENTIRE PAGE */}
-      <section className="w-full min-h-screen flex flex-col items-center justify-center text-center pt-48 pb-28 px-0 relative">
+      {/* 🎯 FULL WIDTH HERO SECTION - NO HORIZONTAL OVERFLOW */}
+      <section className="w-full min-h-screen flex flex-col items-center justify-center text-center pt-48 pb-28 relative overflow-hidden">
         {/* Purple clock image as hero accent */}
         <img
           src="/clock-purple.jpg"
@@ -208,62 +208,64 @@ const LandingPage = () => {
           ></div>
         </div>
         
-        {/* 🔥 FULL WIDTH CONTENT - NO MAX WIDTH CONSTRAINTS */}
-        <div className="relative z-20 w-full px-8 lg:px-16 xl:px-24 py-14 rounded-3xl bg-white/70 shadow-2xl backdrop-blur-2xl border border-purple-200 animate-fade-in-up mx-4">
-          {/* 📝 MAIN HEADING - FILLS FULL WIDTH */}
-          <h1 className="text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-extrabold mb-7 text-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in leading-tight">
-            Plan events and book tickets —{" "}
-            <span className="bg-gradient-to-r from-purple-400 via-purple-600 to-purple-800 bg-clip-text text-transparent">
-              the smart way
-            </span>
-            .
-          </h1>
-          {/* 📝 DESCRIPTION TEXT - FULL WIDTH */}
-          <p className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl mb-12 w-full text-gray-700 animate-fade-in delay-100 font-['Inter'] leading-relaxed">
-            Welcome to Hello Snippet: the trusted, easy-to-use ticketing
-            platform that makes event planning and attending smoother, safer,
-            and smarter.
-          </p>
-          {/* 🔘 BUTTONS */}
-          <div className="flex flex-col md:flex-row gap-5 justify-center animate-fade-in delay-200 mb-12">
-            <a
-              href="/signin"
-              className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-10 py-5 rounded-2xl font-bold shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 text-2xl border-2 border-purple-400 animate-fade-in-up"
-            >
-              Start Now
-            </a>
-            <a
-              href="/HomePage"
-              className="bg-white/90 border border-purple-400 text-purple-700 px-10 py-5 rounded-2xl font-bold shadow-xl hover:bg-purple-50 hover:scale-105 transition-all duration-200 text-2xl backdrop-blur animate-fade-in-up"
-            >
-              Browse Events
-            </a>
-          </div>
-          {/* Testimonial and trusted-by badge - FULL WIDTH LAYOUT */}
-          <div className="flex flex-col lg:flex-row items-center justify-center gap-10 lg:gap-20 w-full">
-            <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center flex-1 max-w-md animate-fade-in-up">
-              <div className="text-purple-600 text-4xl mb-2">
-                <Star size={32} className="inline-block text-yellow-400 mr-1" />
-                "
-              </div>
-              <p className="text-gray-700 italic mb-2 text-lg">
-                "The easiest event platform I've ever used. Our ticket sales
-                doubled!"
-              </p>
-              <span className="text-purple-800 font-semibold">
-                — Happy Organizer
+        {/* 🔥 FULL WIDTH CONTENT - CONTAINED WITHIN VIEWPORT */}
+        <div className="relative z-20 w-full max-w-none px-4 sm:px-8 lg:px-12 xl:px-16 py-14 mx-auto">
+          <div className="bg-white/70 shadow-2xl backdrop-blur-2xl border border-purple-200 rounded-3xl p-8 sm:p-12 lg:p-16 animate-fade-in-up">
+            {/* 📝 MAIN HEADING - RESPONSIVE SIZING */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold mb-7 text-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in leading-tight break-words">
+              Plan events and book tickets —{" "}
+              <span className="bg-gradient-to-r from-purple-400 via-purple-600 to-purple-800 bg-clip-text text-transparent">
+                the smart way
               </span>
+              .
+            </h1>
+            {/* 📝 DESCRIPTION TEXT - RESPONSIVE */}
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-12 text-gray-700 animate-fade-in delay-100 font-['Inter'] leading-relaxed max-w-none">
+              Welcome to Hello Snippet: the trusted, easy-to-use ticketing
+              platform that makes event planning and attending smoother, safer,
+              and smarter.
+            </p>
+            {/* 🔘 BUTTONS - RESPONSIVE */}
+            <div className="flex flex-col sm:flex-row gap-5 justify-center animate-fade-in delay-200 mb-12">
+              <a
+                href="/signin"
+                className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 text-xl sm:text-2xl border-2 border-purple-400 animate-fade-in-up"
+              >
+                Start Now
+              </a>
+              <a
+                href="/HomePage"
+                className="bg-white/90 border border-purple-400 text-purple-700 px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold shadow-xl hover:bg-purple-50 hover:scale-105 transition-all duration-200 text-xl sm:text-2xl backdrop-blur animate-fade-in-up"
+              >
+                Browse Events
+              </a>
             </div>
-            <div className="flex flex-col items-center animate-fade-in-up delay-200">
-              <img
-                src="/icon500x500.png"
-                alt="Trusted by"
-                className="w-20 h-20 rounded-full border-2 border-purple-300 mb-2 shadow-xl"
-              />
-              <span className="text-purple-800 font-bold text-lg flex items-center gap-2">
-                <BadgeCheck className="text-purple-500" size={22} />
-                Trusted by 1,000+ organizers
-              </span>
+            {/* Testimonial and trusted-by badge - RESPONSIVE LAYOUT */}
+            <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 w-full">
+              <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-6 sm:px-8 py-6 flex flex-col items-center w-full max-w-sm animate-fade-in-up">
+                <div className="text-purple-600 text-4xl mb-2">
+                  <Star size={32} className="inline-block text-yellow-400 mr-1" />
+                  "
+                </div>
+                <p className="text-gray-700 italic mb-2 text-base sm:text-lg text-center">
+                  "The easiest event platform I've ever used. Our ticket sales
+                  doubled!"
+                </p>
+                <span className="text-purple-800 font-semibold">
+                  — Happy Organizer
+                </span>
+              </div>
+              <div className="flex flex-col items-center animate-fade-in-up delay-200">
+                <img
+                  src="/icon500x500.png"
+                  alt="Trusted by"
+                  className="w-16 sm:w-20 h-16 sm:h-20 rounded-full border-2 border-purple-300 mb-2 shadow-xl"
+                />
+                <span className="text-purple-800 font-bold text-base sm:text-lg flex items-center gap-2">
+                  <BadgeCheck className="text-purple-500" size={22} />
+                  Trusted by 1,000+ organizers
+                </span>
+              </div>
             </div>
           </div>
         </div>
