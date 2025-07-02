@@ -175,7 +175,7 @@ const LandingPage = () => {
           Get Started
         </a>
       </nav>
-      {/* 🎯 THIS IS THE HERO SECTION YOU WANT TO MODIFY */}
+      {/* Hero Section with animated confetti/particles and purple clock accent */}
       <section className="flex flex-col items-center justify-center text-center pt-48 pb-28 px-4 relative min-h-[700px]">
         {/* Purple clock image as hero accent */}
         <img
@@ -208,7 +208,6 @@ const LandingPage = () => {
           ></div>
         </div>
         <div className="relative z-20 w-full max-w-3xl p-14 rounded-3xl bg-white/70 shadow-2xl backdrop-blur-2xl border border-purple-200 animate-fade-in-up">
-          {/* 📝 MAIN HEADING - THIS IS WHAT YOU SEE IN THE SCREENSHOT */}
           <h1 className="text-6xl md:text-7xl font-extrabold mb-7 text-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in">
             Plan events and book tickets —{" "}
             <span className="bg-gradient-to-r from-purple-400 via-purple-600 to-purple-800 bg-clip-text text-transparent">
@@ -216,13 +215,11 @@ const LandingPage = () => {
             </span>
             .
           </h1>
-          {/* 📝 DESCRIPTION TEXT - THIS IS THE PARAGRAPH BELOW THE HEADING */}
           <p className="text-2xl md:text-3xl mb-12 max-w-2xl mx-auto text-gray-700 animate-fade-in delay-100 font-['Inter']">
             Welcome to Hello Snippet: the trusted, easy-to-use ticketing
             platform that makes event planning and attending smoother, safer,
             and smarter.
           </p>
-          {/* 🔘 BUTTONS */}
           <div className="flex flex-col md:flex-row gap-5 justify-center animate-fade-in delay-200">
             <a
               href="/signin"
@@ -242,11 +239,11 @@ const LandingPage = () => {
             <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center max-w-xs animate-fade-in-up">
               <div className="text-purple-600 text-4xl mb-2">
                 <Star size={32} className="inline-block text-yellow-400 mr-1" />
-                "
+                “
               </div>
               <p className="text-gray-700 italic mb-2 text-lg">
-                "The easiest event platform I've ever used. Our ticket sales
-                doubled!"
+                “The easiest event platform I’ve ever used. Our ticket sales
+                doubled!”
               </p>
               <span className="text-purple-800 font-semibold">
                 — Happy Organizer
@@ -273,10 +270,10 @@ const LandingPage = () => {
       >
         <div className="rounded-3xl bg-white/70 shadow-2xl p-14 md:p-20 backdrop-blur-2xl border border-purple-200 flex flex-col gap-14 items-center relative overflow-visible">
           <h2 className="text-5xl font-bold mb-10 text-purple-900 font-['Montserrat']">
-            You shouldn't have to worry when buying or selling event tickets.
+            You shouldn’t have to worry when buying or selling event tickets.
           </h2>
           <p className="mb-10 text-2xl max-w-2xl mx-auto font-['Inter']">
-            Let's be honest — ticketing platforms have made things harder than
+            Let’s be honest — ticketing platforms have made things harder than
             they should be.
           </p>
           {/* Floating Lucide icons for visual interest */}
@@ -326,7 +323,7 @@ const LandingPage = () => {
               title="Unhelpful Support Bots"
               delay={200}
             >
-              And way too many support bots that don't help.
+              And way too many support bots that don’t help.
             </FeatureCard>
           </div>
           <p className="text-2xl font-semibold text-purple-700 max-w-2xl mx-auto font-['Inter']">
@@ -392,7 +389,7 @@ const LandingPage = () => {
               title="Real-Time Support"
               delay={200}
             >
-              Talk to humans, not helpdesk robots. We're here for you — always.
+              Talk to humans, not helpdesk robots. We’re here for you — always.
             </FeatureCard>
             <FeatureCard
               icon={<Sparkles size={48} className="text-purple-600" />}
@@ -439,7 +436,7 @@ const LandingPage = () => {
         </div>
         <div className="rounded-3xl bg-white/70 shadow-2xl p-14 md:p-20 backdrop-blur-2xl border border-purple-200 flex flex-col gap-14 items-center relative overflow-visible">
           <h2 className="text-5xl font-bold mb-14 text-purple-900 text-center font-['Montserrat']">
-            Whether you're planning an event or buying a ticket, Hello Snippet
+            Whether you’re planning an event or buying a ticket, Hello Snippet
             makes it easy:
           </h2>
           {/* Vertical divider between attendee/organizer flows on desktop */}
@@ -496,7 +493,7 @@ const LandingPage = () => {
                 title="Host & Grow"
                 delay={200}
               >
-                Focus on your event — we'll handle the tech, support, and
+                Focus on your event — we’ll handle the tech, support, and
                 ticketing.
               </FeatureCard>
             </div>
@@ -528,7 +525,7 @@ const LandingPage = () => {
         </div>
         <div className="rounded-3xl bg-white/70 shadow-2xl p-14 md:p-20 backdrop-blur-2xl border border-purple-200 flex flex-col gap-14 items-center relative overflow-visible">
           <h2 className="text-5xl font-bold mb-10 text-purple-900 font-['Montserrat']">
-            Whether you're hosting a conference, a party, or a music event...
+            Whether you’re hosting a conference, a party, or a music event...
           </h2>
           <p className="mb-10 text-2xl font-['Inter']">
             Hello Snippet is your toolkit for:
@@ -617,7 +614,7 @@ const LandingPage = () => {
             </FeatureCard>
           </div>
           <p className="mb-4 text-xl font-['Inter']">
-            And together, we're building something bigger — events that are
+            And together, we’re building something bigger — events that are
             easy, safe, and sustainable.
           </p>
         </div>
