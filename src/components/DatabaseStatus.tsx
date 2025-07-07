@@ -54,10 +54,18 @@ const DatabaseStatus = () => {
         
         // Check storage setup
         const storageResult = await StorageService.initializeBucket();
-        setStorageStatus(storageResult.success ? 'success' : 'error');
+        if (storageResult.success) {
+          setStorageStatus('success');
+          console.log('✅ Storage setup successful');
+        } else {
+          setStorageStatus('error');
+          console.error('❌ Storage setup failed:', storageResult.error);
+        }
         
         if (!storageResult.success) {
           setStatusMessage(`Storage setup failed: ${storageResult.error}`);
+        } else {
+          setStatusMessage('Storage setup completed successfully');
         }
         
         setStatusMessage('Testing organizer signup flow...');

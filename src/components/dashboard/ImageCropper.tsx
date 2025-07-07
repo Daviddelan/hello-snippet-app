@@ -75,6 +75,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
 
   const getCroppedImg = useCallback(async () => {
     if (!completedCrop || !imgRef.current || !canvasRef.current) {
+      setError('Missing required elements for cropping');
       return;
     }
 
@@ -87,6 +88,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
+        setError('Failed to get canvas context');
         throw new Error('Failed to get canvas context');
       }
 
@@ -111,11 +113,14 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
       // Convert canvas to blob
       canvas.toBlob(async (blob) => {
         if (!blob) {
-          setError('Failed to create image blob');
+          const errorMsg = 'Failed to create image blob';
+          console.error(errorMsg);
+          setError(errorMsg);
           setIsProcessing(false);
           return;
         }
 
+        console.log('Created blob for upload:', { size: blob.size, type: blob.type });
         setIsUploading(true);
 
         try {
@@ -127,8 +132,10 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           );
 
           if (uploadResult.success && uploadResult.url) {
+            console.log('Image upload successful:', uploadResult.url);
             onImageCropped(uploadResult.url);
           } else {
+            console.error('Upload failed:', uploadResult.error);
             setError(uploadResult.error || 'Failed to upload image');
           }
         } catch (uploadError) {
@@ -141,8 +148,9 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
       }, 'image/jpeg', 0.9);
 
     } catch (error) {
+      const errorMsg = `Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`;
       console.error('Crop error:', error);
-      setError('Failed to process image');
+      setError(errorMsg);
       setIsProcessing(false);
     }
   }, [completedCrop, onImageCropped, organizerId, eventId]);

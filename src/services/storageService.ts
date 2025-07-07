@@ -115,6 +115,22 @@ export class StorageService {
     eventId?: string
   ): Promise<UploadResult> {
     try {
+      console.log('Starting event image upload...', { 
+        fileName: file.name, 
+        fileSize: file.size, 
+        organizerId, 
+        eventId 
+      });
+      
+      // Initialize bucket first
+      const bucketInit = await this.initializeBucket();
+      if (!bucketInit.success) {
+        return {
+          success: false,
+          error: bucketInit.error || 'Failed to initialize storage'
+        };
+      }
+      
       // Validate image first
       const validation = await this.validateImage(file);
       if (!validation.isValid) {
@@ -137,10 +153,14 @@ export class StorageService {
         });
 
       if (error) {
-        console.error('Storage upload error:', error);
+        console.error('Storage upload error details:', {
+          message: error.message,
+          statusCode: error.statusCode,
+          error: error
+        });
         return {
           success: false,
-          error: `Upload failed: ${error.message}`
+          error: `Upload failed: ${error.message || 'Unknown storage error'}`
         };
       }
 
@@ -155,10 +175,10 @@ export class StorageService {
       };
 
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Unexpected upload error:', error);
       return {
         success: false,
-        error: 'An unexpected error occurred during upload'
+        error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -172,12 +192,26 @@ export class StorageService {
     eventId?: string
   ): Promise<UploadResult> {
     try {
+      console.log('Starting cropped image upload...', { organizerId, eventId, blobSize: blob.size });
+      
+      // Initialize bucket first
+      const bucketInit = await this.initializeBucket();
+      if (!bucketInit.success) {
+        console.error('Bucket initialization failed:', bucketInit.error);
+        return {
+          success: false,
+          error: bucketInit.error || 'Failed to initialize storage'
+        };
+      }
+      
       // Convert blob to file for validation
       const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
       
       // Validate the cropped image
+      console.log('Validating cropped image...');
       const validation = await this.validateImage(file);
       if (!validation.isValid) {
+        console.error('Image validation failed:', validation.error);
         return {
           success: false,
           error: validation.error
@@ -186,6 +220,7 @@ export class StorageService {
 
       // Generate unique filename
       const fileName = `${organizerId}/${eventId || 'temp'}_cropped_${Date.now()}.jpg`;
+      console.log('Uploading to path:', fileName);
 
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
@@ -197,28 +232,34 @@ export class StorageService {
         });
 
       if (error) {
-        console.error('Storage upload error:', error);
+        console.error('Storage upload error details:', {
+          message: error.message,
+          statusCode: error.statusCode,
+          error: error
+        });
         return {
           success: false,
-          error: `Upload failed: ${error.message}`
+          error: `Upload failed: ${error.message || 'Unknown storage error'}`
         };
       }
 
+      console.log('Upload successful, getting public URL...');
       // Get public URL
       const { data: urlData } = supabase.storage
         .from(this.BUCKET_NAME)
         .getPublicUrl(data.path);
 
+      console.log('Upload completed successfully:', urlData.publicUrl);
       return {
         success: true,
         url: urlData.publicUrl
       };
 
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Unexpected upload error:', error);
       return {
         success: false,
-        error: 'An unexpected error occurred during upload'
+        error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -263,10 +304,13 @@ export class StorageService {
    */
   static async initializeBucket(): Promise<{ success: boolean; error?: string }> {
     try {
+      console.log('Initializing storage bucket...');
+      
       // Check if bucket exists
       const { data: buckets, error: listError } = await supabase.storage.listBuckets();
       
       if (listError) {
+        console.error('Failed to list buckets:', listError);
         return {
           success: false,
           error: `Failed to list buckets: ${listError.message}`
@@ -277,6 +321,7 @@ export class StorageService {
 
       if (!bucketExists) {
         // Create bucket
+        console.log('Creating storage bucket...');
         const { error: createError } = await supabase.storage.createBucket(this.BUCKET_NAME, {
           public: true,
           allowedMimeTypes: this.ALLOWED_TYPES,
@@ -284,6 +329,7 @@ export class StorageService {
         });
 
         if (createError) {
+          console.error('Failed to create bucket:', createError);
           return {
             success: false,
             error: `Failed to create bucket: ${createError.message}`
@@ -291,6 +337,7 @@ export class StorageService {
         }
       }
 
+      console.log('Storage bucket initialized successfully');
       return { success: true };
 
     } catch (error) {
