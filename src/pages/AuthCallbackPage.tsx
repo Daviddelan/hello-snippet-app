@@ -34,11 +34,19 @@ const AuthCallbackPage = () => {
           const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
           
           if (existingProfile) {
-            // Existing user - redirect to dashboard
-            console.log('Existing organizer profile found, redirecting to dashboard');
-            setStatus('success');
-            setMessage('Welcome back! Redirecting to your dashboard...');
-            setTimeout(() => navigate('/dashboard/organizer'), 2000);
+            if (existingProfile.profile_completed) {
+              // Existing user with complete profile - redirect to dashboard
+              console.log('Complete organizer profile found, redirecting to dashboard');
+              setStatus('success');
+              setMessage('Welcome back! Redirecting to your dashboard...');
+              setTimeout(() => navigate('/dashboard/organizer'), 2000);
+            } else {
+              // Existing user with incomplete profile - redirect to complete profile
+              console.log('Incomplete organizer profile found, redirecting to complete profile');
+              setStatus('success');
+              setMessage('Please complete your profile...');
+              setTimeout(() => navigate('/complete-profile'), 2000);
+            }
           } else {
             // New user from Google OAuth - redirect to complete profile
             console.log('No organizer profile found, redirecting to complete profile');
@@ -68,9 +76,15 @@ const AuthCallbackPage = () => {
               const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
               
               if (existingProfile) {
-                setStatus('success');
-                setMessage('Welcome back! Redirecting to your dashboard...');
-                setTimeout(() => navigate('/dashboard/organizer'), 2000);
+                if (existingProfile.profile_completed) {
+                  setStatus('success');
+                  setMessage('Welcome back! Redirecting to your dashboard...');
+                  setTimeout(() => navigate('/dashboard/organizer'), 2000);
+                } else {
+                  setStatus('success');
+                  setMessage('Please complete your profile...');
+                  setTimeout(() => navigate('/complete-profile'), 2000);
+                }
               } else {
                 setStatus('success');
                 setMessage('Account created successfully! Please complete your profile...');

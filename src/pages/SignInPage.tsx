@@ -59,8 +59,13 @@ const SignInPage = () => {
           const organizerProfile = await OrganizerService.getOrganizerProfile(session.user.id);
           
           if (organizerProfile) {
-            console.log('Organizer profile found, redirecting to dashboard');
-            navigate('/dashboard/organizer');
+            if (organizerProfile.profile_completed) {
+              console.log('Complete organizer profile found, redirecting to dashboard');
+              navigate('/dashboard/organizer');
+            } else {
+              console.log('Incomplete organizer profile found, redirecting to complete profile');
+              navigate('/complete-profile');
+            }
           } else {
             console.log('No organizer profile found, redirecting to complete profile');
             navigate('/complete-profile');

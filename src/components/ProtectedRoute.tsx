@@ -18,6 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const checkAuth = async () => {
       try {
         setError(null);
+        console.log('ProtectedRoute: Checking authentication...');
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
@@ -45,6 +46,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             return;
           }
 
+          if (!organizerProfile.profile_completed) {
+            console.log('Profile not completed, redirecting to complete profile');
+            navigate('/complete-profile');
+            return;
+          }
           console.log('Organizer profile found:', organizerProfile.organization_name);
           setIsAuthenticated(true);
         } catch (profileError) {
