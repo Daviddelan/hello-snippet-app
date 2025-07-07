@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Menu, X, Search, User, Bell } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Calendar, Menu, X, Search, User, Bell } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,31 +12,39 @@ const Navigation = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Discover Events', href: '/discover' },
-    { name: 'Create Event', href: '/create' },
-    { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
+    { name: "Home", href: "/" },
+    { name: "Discover Events", href: "/discover" },
+    { name: "Create Event", href: "/create-event" }, // updated route
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled 
-        ? 'bg-white/95 backdrop-blur-lg shadow-lg border-b border-gray-100' 
-        : 'bg-transparent'
-    }`}>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 flex justify-center items-center transition-all duration-300 pointer-events-none`}
+    >
+      {/* Glassmorphic nav background oval - smaller, more subtle */}
+      <div
+        className={`absolute top-1 left-1/2 -translate-x-1/2 w-[48vw] max-w-3xl h-[42px] md:h-[60px] rounded-[1.7rem] bg-white/60 backdrop-blur-2xl shadow-xl border border-purple-200/60 pointer-events-auto transition-all duration-300 ${
+          isScrolled ? "bg-white/80 border-purple-300/80 shadow-lg" : ""
+        }`}
+        style={{ zIndex: 1 }}
+      />
+      <div
+        className="container mx-auto px-2 sm:px-4 lg:px-6 relative flex-1 pointer-events-auto"
+        style={{ zIndex: 2 }}
+      >
+        <div className="flex items-center justify-between h-12 lg:h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center group">
-            <img 
-              src="/hellosnippet_transparent.png" 
-              alt="HelloSnippet" 
+            <img
+              src="/hellosnippet_transparent.png"
+              alt="HelloSnippet"
               className="h-8 lg:h-10 w-auto group-hover:scale-105 transition-transform duration-200"
             />
           </Link>
@@ -49,10 +57,10 @@ const Navigation = () => {
                 to={link.href}
                 className={`font-medium transition-colors duration-200 hover:text-primary-500 ${
                   location.pathname === link.href
-                    ? 'text-primary-500'
-                    : isScrolled 
-                      ? 'text-gray-700' 
-                      : 'text-white/90'
+                    ? "text-primary-500"
+                    : isScrolled
+                    ? "text-gray-700"
+                    : "text-purple-900"
                 }`}
               >
                 {link.name}
@@ -62,25 +70,31 @@ const Navigation = () => {
 
           {/* Desktop Actions */}
           <div className="hidden lg:flex items-center space-x-4">
-            <button className={`p-2 rounded-xl transition-colors duration-200 ${
-              isScrolled 
-                ? 'text-gray-600 hover:bg-gray-100' 
-                : 'text-white/80 hover:bg-white/10'
-            }`}>
+            <button
+              className={`p-2 rounded-xl transition-colors duration-200 ${
+                isScrolled
+                  ? "text-gray-600 hover:bg-gray-100"
+                  : "text-white/80 hover:bg-white/10"
+              }`}
+            >
               <Search className="w-5 h-5" />
             </button>
-            <button className={`p-2 rounded-xl transition-colors duration-200 ${
-              isScrolled 
-                ? 'text-gray-600 hover:bg-gray-100' 
-                : 'text-white/80 hover:bg-white/10'
-            }`}>
+            <button
+              className={`p-2 rounded-xl transition-colors duration-200 ${
+                isScrolled
+                  ? "text-gray-600 hover:bg-gray-100"
+                  : "text-white/80 hover:bg-white/10"
+              }`}
+            >
               <Bell className="w-5 h-5" />
             </button>
-            <button className={`p-2 rounded-xl transition-colors duration-200 ${
-              isScrolled 
-                ? 'text-gray-600 hover:bg-gray-100' 
-                : 'text-white/80 hover:bg-white/10'
-            }`}>
+            <button
+              className={`p-2 rounded-xl transition-colors duration-200 ${
+                isScrolled
+                  ? "text-gray-600 hover:bg-gray-100"
+                  : "text-white/80 hover:bg-white/10"
+              }`}
+            >
               <User className="w-5 h-5" />
             </button>
             <button className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105">
@@ -92,12 +106,16 @@ const Navigation = () => {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`lg:hidden p-2 rounded-xl transition-colors duration-200 ${
-              isScrolled 
-                ? 'text-gray-600 hover:bg-gray-100' 
-                : 'text-white hover:bg-white/10'
+              isScrolled
+                ? "text-gray-600 hover:bg-gray-100"
+                : "text-white hover:bg-white/10"
             }`}
           >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
 
@@ -112,8 +130,8 @@ const Navigation = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`block font-medium transition-colors duration-200 hover:text-primary-500 ${
                     location.pathname === link.href
-                      ? 'text-primary-500'
-                      : 'text-gray-700'
+                      ? "text-primary-500"
+                      : "text-gray-700"
                   }`}
                 >
                   {link.name}

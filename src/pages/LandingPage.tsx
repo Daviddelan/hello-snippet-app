@@ -94,7 +94,7 @@ const ScrollToTop = () => {
 
 const LandingPage = () => {
   return (
-    <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 min-h-screen text-gray-900 relative">
+    <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 min-h-screen text-gray-900 relative text-[15px] md:text-base">
       {/* Animated SVG background blobs */}
       <svg
         className="absolute top-[-120px] left-[-120px] w-[600px] h-[600px] z-0 animate-float-slow"
@@ -125,16 +125,16 @@ const LandingPage = () => {
         />
       </svg>
       {/* Glassmorphic Navbar with logo shine and CTA */}
-      <nav className="flex justify-between items-center px-10 py-7 fixed top-0 left-0 right-0 z-30 backdrop-blur-2xl bg-white/70 border-b border-purple-200 shadow-2xl rounded-b-3xl animate-fade-in-up">
+      <nav className="flex justify-between items-center px-4 py-5 md:px-8 md:py-5 fixed top-0 left-0 right-0 z-30 backdrop-blur-2xl bg-white/70 border-b border-purple-200 shadow-2xl rounded-b-2xl animate-fade-in-up text-[15px] md:text-base">
         {/* Use the Navigation logo for consistency */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           <img
             src="/hellosnippet_transparent.png"
             alt="Hello Snippet Logo"
-            className="h-10 w-auto"
+            className="h-8 w-auto md:h-9"
           />
         </div>
-        <ul className="flex gap-10 font-semibold text-gray-700 text-lg">
+        <ul className="flex gap-5 md:gap-8 font-semibold text-gray-700 text-base md:text-lg">
           <li>
             <a
               href="#how-it-works"
@@ -170,106 +170,94 @@ const LandingPage = () => {
         </ul>
         <a
           href="/signin"
-          className="ml-8 bg-gradient-to-r from-purple-500 to-purple-700 text-white px-7 py-3 rounded-xl font-bold shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-200 text-lg border-2 border-purple-400 animate-fade-in-up"
+          className="ml-4 md:ml-8 bg-gradient-to-r from-purple-500 to-purple-700 text-white px-5 py-2.5 md:px-7 md:py-3 rounded-xl font-bold shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-200 text-base md:text-lg border-2 border-purple-400 animate-fade-in-up"
         >
           Get Started
         </a>
       </nav>
       {/* Hero Section with animated confetti/particles and purple clock accent */}
-      <section className="flex flex-col items-center justify-center text-center pt-48 pb-28 px-4 relative min-h-[700px]">
+      <section
+        className="relative flex flex-col items-center justify-center text-center min-h-[70vh] w-full overflow-hidden bg-gradient-to-br from-purple-100 via-white to-purple-200"
+        style={{ paddingTop: "140px", paddingBottom: "50px" }}
+      >
         {/* Purple clock image as hero accent */}
         <img
           src="/clock-purple.jpg"
           alt="Event Clock"
-          className="absolute top-0 right-0 w-[420px] h-[260px] object-cover rounded-3xl shadow-2xl opacity-60 z-0 hidden md:block"
+          className="absolute top-0 right-0 w-[520px] h-[320px] object-cover rounded-3xl shadow-2xl opacity-60 z-0 hidden md:block"
           style={{ mixBlendMode: "lighten" }}
         />
         {/* Animated confetti using Lucide PartyPopper icons */}
         <PartyPopper
-          size={48}
-          className="absolute top-16 left-24 text-purple-300 animate-float-slow2 opacity-60 z-10"
+          size={64}
+          className="absolute top-24 left-32 text-purple-300 animate-float-slow2 opacity-60 z-10"
         />
         <PartyPopper
-          size={36}
-          className="absolute top-32 right-32 text-purple-400 animate-float-slow opacity-40 z-10"
+          size={48}
+          className="absolute top-40 right-40 text-purple-400 animate-float-slow opacity-40 z-10"
         />
         <Star
-          size={40}
-          className="absolute top-28 left-1/2 text-yellow-400 animate-float-slow2 opacity-30 z-10"
+          size={60}
+          className="absolute top-32 left-1/2 text-yellow-400 animate-float-slow2 opacity-30 z-10"
         />
         <Globe2
-          size={44}
-          className="absolute bottom-24 right-40 text-purple-300 animate-float-slow opacity-30 z-10"
+          size={54}
+          className="absolute bottom-32 right-60 text-purple-300 animate-float-slow opacity-30 z-10"
         />
-        <div className="absolute inset-0 flex justify-center items-center pointer-events-none select-none z-0">
-          <div
-            className="w-[700px] h-[700px] bg-purple-200/40 rounded-full blur-3xl animate-pulse-slow"
-            style={{ filter: "blur(140px)" }}
-          ></div>
+        {/* Large, bold, gradient headline */}
+        <h1 className="w-full max-w-4xl mx-auto text-3xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in mb-6 px-2 md:px-0 leading-tight">
+          Plan events and book tickets —{" "}
+          <span className="whitespace-nowrap">the smart way.</span>
+        </h1>
+        <p className="w-full max-w-2xl mx-auto text-lg md:text-2xl text-gray-700 font-['Inter'] animate-fade-in delay-100 mb-8 px-2 md:px-0">
+          Welcome to Hello Snippet: the trusted, easy-to-use ticketing platform
+          that makes event planning and attending smoother, safer, and smarter.
+        </p>
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-center animate-fade-in delay-200 mb-8">
+          <a
+            href="/signin"
+            className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-8 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 text-lg border-2 border-purple-400 animate-fade-in-up"
+          >
+            Start Now
+          </a>
+          <a
+            href="/HomePage"
+            className="bg-white/90 border border-purple-400 text-purple-700 px-8 py-4 rounded-2xl font-bold shadow-xl hover:bg-purple-50 hover:scale-105 transition-all duration-200 text-lg backdrop-blur animate-fade-in-up"
+          >
+            Browse Events
+          </a>
         </div>
-        <div className="relative z-20 w-full max-w-3xl p-14 rounded-3xl bg-white/70 shadow-2xl backdrop-blur-2xl border border-purple-200 animate-fade-in-up">
-          <h1 className="text-6xl md:text-7xl font-extrabold mb-7 text-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in">
-            Plan events and book tickets —{" "}
-            <span className="bg-gradient-to-r from-purple-400 via-purple-600 to-purple-800 bg-clip-text text-transparent">
-              the smart way
+        {/* Testimonial and trusted-by badge, now moved to top right on large screens and below buttons on mobile */}
+        <div className="w-full flex flex-col md:flex-row md:justify-end md:items-start items-center gap-6 md:gap-8 px-2 md:px-10 mt-2 md:mt-0">
+          <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-6 py-4 flex flex-col items-center max-w-xs animate-fade-in-up md:mt-0 mt-6 text-base md:text-lg">
+            <div className="text-purple-600 text-4xl mb-2">
+              <Star size={32} className="inline-block text-yellow-400 mr-1" />“
+            </div>
+            <p className="text-gray-700 italic mb-2 text-lg">
+              “The easiest event platform I’ve ever used. Our ticket sales
+              doubled!”
+            </p>
+            <span className="text-purple-800 font-semibold">
+              — Happy Organizer
             </span>
-            .
-          </h1>
-          <p className="text-2xl md:text-3xl mb-12 max-w-2xl mx-auto text-gray-700 animate-fade-in delay-100 font-['Inter']">
-            Welcome to Hello Snippet: the trusted, easy-to-use ticketing
-            platform that makes event planning and attending smoother, safer,
-            and smarter.
-          </p>
-          <div className="flex flex-col md:flex-row gap-5 justify-center animate-fade-in delay-200">
-            <a
-              href="/signin"
-              className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-10 py-5 rounded-2xl font-bold shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 text-2xl border-2 border-purple-400 animate-fade-in-up"
-            >
-              Start Now
-            </a>
-            <a
-              href="/HomePage"
-              className="bg-white/90 border border-purple-400 text-purple-700 px-10 py-5 rounded-2xl font-bold shadow-xl hover:bg-purple-50 hover:scale-105 transition-all duration-200 text-2xl backdrop-blur animate-fade-in-up"
-            >
-              Browse Events
-            </a>
           </div>
-          {/* Testimonial and trusted-by badge */}
-          <div className="mt-12 flex flex-col md:flex-row items-center justify-center gap-10">
-            <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-8 py-6 flex flex-col items-center max-w-xs animate-fade-in-up">
-              <div className="text-purple-600 text-4xl mb-2">
-                <Star size={32} className="inline-block text-yellow-400 mr-1" />
-                “
-              </div>
-              <p className="text-gray-700 italic mb-2 text-lg">
-                “The easiest event platform I’ve ever used. Our ticket sales
-                doubled!”
-              </p>
-              <span className="text-purple-800 font-semibold">
-                — Happy Organizer
-              </span>
-            </div>
-            <div className="flex flex-col items-center animate-fade-in-up delay-200">
-              <img
-                src="/icon500x500.png"
-                alt="Trusted by"
-                className="w-20 h-20 rounded-full border-2 border-purple-300 mb-2 shadow-xl"
-              />
-              <span className="text-purple-800 font-bold text-lg flex items-center gap-2">
-                <BadgeCheck className="text-purple-500" size={22} />
-                Trusted by 1,000+ organizers
-              </span>
-            </div>
+          <div className="flex flex-col items-center animate-fade-in-up">
+            <img
+              src="/icon500x500.png"
+              alt="Trusted by"
+              className="w-14 h-14 md:w-20 md:h-20 rounded-full border-2 border-purple-300 mb-2 shadow-xl"
+            />
+            <span className="text-purple-800 font-bold text-base md:text-lg flex items-center gap-2">
+              <BadgeCheck className="text-purple-500" size={22} />
+              Trusted by 1,000+ organizers
+            </span>
           </div>
         </div>
       </section>
       {/* Section 2: Problems as Cards */}
-      <section
-        className="py-24 px-2 md:px-8 max-w-[1600px] mx-auto text-center animate-fade-in-up"
-        id="how-it-works"
-      >
-        <div className="rounded-3xl bg-white/70 shadow-2xl p-14 md:p-20 backdrop-blur-2xl border border-purple-200 flex flex-col gap-14 items-center relative overflow-visible">
-          <h2 className="text-5xl font-bold mb-10 text-purple-900 font-['Montserrat']">
+      <section className="py-14 md:py-20 px-2 md:px-8 max-w-[1200px] mx-auto text-center animate-fade-in-up">
+        <div className="rounded-2xl bg-white/70 shadow-2xl p-8 md:p-14 backdrop-blur-2xl border border-purple-200 flex flex-col gap-10 items-center relative overflow-visible">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-purple-900 font-['Montserrat']">
             You shouldn’t have to worry when buying or selling event tickets.
           </h2>
           <p className="mb-10 text-2xl max-w-2xl mx-auto font-['Inter']">
