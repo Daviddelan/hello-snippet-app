@@ -87,22 +87,33 @@ const CreateEventPage = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('CreateEventPage: Checking authentication...');
         const { data: { user }, error } = await supabase.auth.getUser();
         
         if (error || !user) {
+          console.log('CreateEventPage: No user found, redirecting to signin');
           navigate('/signin?message=Please sign in to create events');
           return;
         }
 
+        console.log('CreateEventPage: User found:', user.email);
         setCurrentUser(user);
 
         // Get organizer profile
         const organizerProfile = await OrganizerService.getOrganizerProfile(user.id);
         if (!organizerProfile) {
+          console.log('CreateEventPage: No organizer profile found');
           navigate('/complete-profile?message=Please complete your profile first');
           return;
         }
 
+        if (!organizerProfile.profile_completed) {
+          console.log('CreateEventPage: Profile not completed');
+          navigate('/complete-profile?message=Please complete your profile first');
+          return;
+        }
+
+        console.log('CreateEventPage: Organizer profile loaded:', organizerProfile.organization_name);
         setOrganizer(organizerProfile);
       } catch (error) {
         console.error('Auth check error:', error);

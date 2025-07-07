@@ -24,6 +24,14 @@ function App() {
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/complete-profile" element={<CompleteProfilePage />} />
+        <Route 
+          path="/create-event" 
+          element={
+            <ProtectedRoute>
+              <CreateEventPage />
+            </ProtectedRoute>
+          } 
+        />
         <Route
           path="/dashboard/organizer/*"
           element={
@@ -33,7 +41,6 @@ function App() {
           }
         />
         <Route path="/event/:id" element={<EventDetailsPage />} />
-        <Route path="/create-event" element={<CreateEventPage />} />
         <Route path="/about" element={<AboutPage />} />
       </Routes>
     </Router>
