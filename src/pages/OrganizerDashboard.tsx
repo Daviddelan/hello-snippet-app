@@ -179,18 +179,3 @@ const OrganizerDashboard = () => {
 };
 
 export default OrganizerDashboard;
-
-      )}
-
-      {/* Global Create Event Modal */}
-      <CreateEventModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        organizerId={organizer?.id || ''}
-        onEventCreated={handleEventCreated}
-      />
-    </div>
-  );
-};
-
-export default OrganizerDashboard;
