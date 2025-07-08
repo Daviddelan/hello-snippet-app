@@ -41,26 +41,26 @@ const AuthCallbackPage = () => {
               console.log('Complete organizer profile found, redirecting to dashboard');
               setStatus('success');
               setMessage('Welcome back! Redirecting to your dashboard...');
-              setTimeout(() => navigate('/dashboard/organizer'), 2000);
+              setTimeout(() => navigate('/dashboard/organizer'), 1500);
             } else {
               // Existing user with incomplete profile - redirect to complete profile
               console.log('Incomplete organizer profile found, redirecting to complete profile');
               setStatus('success');
               setMessage('Please complete your profile...');
-              setTimeout(() => navigate('/complete-profile'), 2000);
+              setTimeout(() => navigate('/complete-profile'), 1500);
             }
           } else {
             // New user from Google OAuth - redirect to complete profile
             console.log('No organizer profile found, redirecting to complete profile');
             setStatus('success');
             setMessage('Account created successfully! Please complete your profile...');
-            setTimeout(() => navigate('/complete-profile'), 2000);
+            setTimeout(() => navigate('/complete-profile'), 1500);
           }
         } else {
           console.log('No session found, checking URL hash for auth data');
           
-          // Wait a moment for Supabase to process the OAuth callback
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Wait longer for Supabase to process the OAuth callback
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Try to get session again after waiting
           const { data: retrySessionData, error: retrySessionError } = await supabase.auth.getSession();
@@ -76,24 +76,18 @@ const AuthCallbackPage = () => {
             
             if (existingProfile) {
               if (existingProfile.profile_completed) {
-                if (existingProfile.profile_completed) {
-                  setStatus('success');
-                  setMessage('Welcome back! Redirecting to your dashboard...');
-                  setTimeout(() => navigate('/dashboard/organizer'), 2000);
-                } else {
-                  setStatus('success');
-                  setMessage('Please complete your profile...');
-                  setTimeout(() => navigate('/complete-profile'), 2000);
-                }
+                setStatus('success');
+                setMessage('Welcome back! Redirecting to your dashboard...');
+                setTimeout(() => navigate('/dashboard/organizer'), 1500);
               } else {
                 setStatus('success');
                 setMessage('Please complete your profile...');
-                setTimeout(() => navigate('/complete-profile'), 2000);
+                setTimeout(() => navigate('/complete-profile'), 1500);
               }
             } else {
               setStatus('success');
               setMessage('Account created successfully! Please complete your profile...');
-              setTimeout(() => navigate('/complete-profile'), 2000);
+              setTimeout(() => navigate('/complete-profile'), 1500);
             }
           } else {
             // Check URL hash for OAuth data
@@ -107,12 +101,24 @@ const AuthCallbackPage = () => {
             
             if (accessToken) {
               console.log('Access token found in URL, waiting for session...');
-              // Wait longer for session to be established
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              // Wait even longer for session to be established
+              await new Promise(resolve => setTimeout(resolve, 3000));
               
               const { data: finalSessionData } = await supabase.auth.getSession();
               if (finalSessionData.session) {
-                window.location.reload(); // Reload to restart the process with session
+                // Instead of reloading, try to process the session directly
+                const user = finalSessionData.session.user;
+                const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
+                
+                if (existingProfile && existingProfile.profile_completed) {
+                  setStatus('success');
+                  setMessage('Welcome back! Redirecting to your dashboard...');
+                  setTimeout(() => navigate('/dashboard/organizer'), 1500);
+                } else {
+                  setStatus('success');
+                  setMessage('Please complete your profile...');
+                  setTimeout(() => navigate('/complete-profile'), 1500);
+                }
                 return;
               }
             }
@@ -139,12 +145,12 @@ const AuthCallbackPage = () => {
         }
         
         setMessage(errorMessage);
-        setTimeout(() => navigate('/signin'), 5000);
+        setTimeout(() => navigate('/signin'), 3000);
       }
     };
 
-    // Add a delay to ensure the URL is fully loaded and OAuth is processed
-    const timer = setTimeout(handleAuthCallback, 1000);
+    // Add a longer delay to ensure the URL is fully loaded and OAuth is processed
+    const timer = setTimeout(handleAuthCallback, 1500);
     
     return () => clearTimeout(timer);
   }, [navigate]);

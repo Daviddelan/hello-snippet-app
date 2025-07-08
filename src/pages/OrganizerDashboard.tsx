@@ -42,21 +42,30 @@ const OrganizerDashboard = () => {
         const organizerProfile = await OrganizerService.getOrganizerProfile(user.id);
         
         if (!organizerProfile) {
-          throw new Error('No organizer profile found');
+          console.log('No organizer profile found, redirecting to complete profile');
+          navigate('/complete-profile');
+          return;
         }
 
+        if (!organizerProfile.profile_completed) {
+          console.log('Profile not completed, redirecting to complete profile');
+          navigate('/complete-profile');
+          return;
+        }
         console.log('Organizer profile loaded:', organizerProfile.organization_name);
         setOrganizer(organizerProfile);
       } catch (error) {
         console.error('Error loading organizer data:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load organizer data');
+        // Instead of showing error, redirect to signin
+        console.log('Error loading organizer data, redirecting to signin');
+        navigate('/signin');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadOrganizerData();
-  }, []);
+  }, [navigate]);
 
   const handleCreateEvent = () => {
     setShowCreateModal(true);

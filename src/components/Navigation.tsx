@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Calendar, Menu, X, Search, User, Bell } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { OrganizerService } from "../services/organizerService";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -22,14 +23,35 @@ const Navigation = () => {
     // Check initial auth state
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
+      if (user) {
+        // Also check if they have a complete organizer profile
+        try {
+          const organizerProfile = await OrganizerService.getOrganizerProfile(user.id);
+          setIsAuthenticated(!!organizerProfile?.profile_completed);
+        } catch (error) {
+          console.error('Error checking organizer profile in navigation:', error);
+          setIsAuthenticated(!!user);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
     };
     
     checkAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        try {
+          const organizerProfile = await OrganizerService.getOrganizerProfile(session.user.id);
+          setIsAuthenticated(!!organizerProfile?.profile_completed);
+        } catch (error) {
+          console.error('Error checking organizer profile in navigation:', error);
+          setIsAuthenticated(!!session);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
     });
 
     return () => subscription.unsubscribe();

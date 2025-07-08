@@ -77,6 +77,9 @@ const SignInPage = () => {
             message: 'Error loading profile. Please try again.'
           });
         }
+      } else if (event === 'SIGNED_OUT') {
+        setIsSubmitting(false);
+        setSubmitStatus({ type: null, message: '' });
       }
     });
 
