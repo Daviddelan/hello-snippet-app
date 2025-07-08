@@ -21,20 +21,29 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
    * Get the correct redirect URL for the current environment
    */
   const getRedirectUrl = (): string => {
-    // Always use the current origin to avoid localhost redirects in production
-    return `${window.location.origin}/auth/callback`;
+    // Get the current origin and ensure it's clean
+    const origin = window.location.origin;
+    
+    // Remove any port numbers in production
+    const cleanOrigin = origin.includes('vercel.app') || origin.includes('netlify.app') 
+      ? origin.replace(/:3000|:5173/, '') 
+      : origin;
+    
+    console.log('OAuth redirect URL:', `${cleanOrigin}/auth/callback`);
+    return `${cleanOrigin}/auth/callback`;
   };
 
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
       
-      console.log('Starting Google OAuth with redirect URL:', getRedirectUrl());
+      const redirectUrl = getRedirectUrl();
+      console.log('Starting Google OAuth with redirect URL:', redirectUrl);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: getRedirectUrl(),
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

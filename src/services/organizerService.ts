@@ -6,10 +6,16 @@ export class OrganizerService {
    * Get the correct redirect URL for the current environment
    */
   private static getRedirectUrl(): string {
-    // In production, use the current origin
-    // In development, use localhost
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/auth/callback`;
+      const origin = window.location.origin;
+      
+      // Remove any port numbers in production
+      const cleanOrigin = origin.includes('vercel.app') || origin.includes('netlify.app') 
+        ? origin.replace(/:3000|:5173/, '') 
+        : origin;
+      
+      console.log('Organizer service redirect URL:', `${cleanOrigin}/auth/callback`);
+      return `${cleanOrigin}/auth/callback`;
     }
     return '/auth/callback';
   }

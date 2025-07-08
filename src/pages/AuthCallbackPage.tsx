@@ -14,20 +14,22 @@ const AuthCallbackPage = () => {
       try {
         console.log('Auth callback page loaded');
         console.log('Current URL:', window.location.href);
+        console.log('URL hash:', window.location.hash);
+        console.log('URL search:', window.location.search);
         
         // Handle the OAuth callback
-        const { data, error } = await supabase.auth.getSession();
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         
-        console.log('Session data:', data);
-        console.log('Session error:', error);
+        console.log('Session data:', sessionData);
+        console.log('Session error:', sessionError);
         
-        if (error) {
-          console.error('Session error:', error);
-          throw error;
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          throw sessionError;
         }
 
-        if (data.session) {
-          const user = data.session.user;
+        if (sessionData.session) {
+          const user = sessionData.session.user;
           console.log('User found in session:', user.email);
           
           // Check if user already has an organizer profile
@@ -57,25 +59,23 @@ const AuthCallbackPage = () => {
         } else {
           console.log('No session found, checking URL hash for auth data');
           
-          // Try to get session from URL hash (for OAuth redirects)
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const accessToken = hashParams.get('access_token');
+          // Wait a moment for Supabase to process the OAuth callback
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
-          if (accessToken) {
-            console.log('Access token found in URL hash, setting session');
-            // Let Supabase handle the session from the URL
-            const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          // Try to get session again after waiting
+          const { data: retrySessionData, error: retrySessionError } = await supabase.auth.getSession();
+          
+          if (retrySessionError) {
+            throw retrySessionError;
+          }
+          
+          if (retrySessionData.session) {
+            console.log('Session found after retry:', retrySessionData.session.user.email);
+            const user = retrySessionData.session.user;
+            const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
             
-            if (sessionError) {
-              throw sessionError;
-            }
-            
-            if (sessionData.session) {
-              // Retry the profile check
-              const user = sessionData.session.user;
-              const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
-              
-              if (existingProfile) {
+            if (existingProfile) {
+              if (existingProfile.profile_completed) {
                 if (existingProfile.profile_completed) {
                   setStatus('success');
                   setMessage('Welcome back! Redirecting to your dashboard...');
@@ -87,14 +87,37 @@ const AuthCallbackPage = () => {
                 }
               } else {
                 setStatus('success');
-                setMessage('Account created successfully! Please complete your profile...');
+                setMessage('Please complete your profile...');
                 setTimeout(() => navigate('/complete-profile'), 2000);
               }
             } else {
-              throw new Error('Failed to establish session');
+              setStatus('success');
+              setMessage('Account created successfully! Please complete your profile...');
+              setTimeout(() => navigate('/complete-profile'), 2000);
             }
           } else {
-            throw new Error('No authentication data found');
+            // Check URL hash for OAuth data
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const error = hashParams.get('error');
+            
+            if (error) {
+              throw new Error(`OAuth error: ${error}`);
+            }
+            
+            if (accessToken) {
+              console.log('Access token found in URL, waiting for session...');
+              // Wait longer for session to be established
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              
+              const { data: finalSessionData } = await supabase.auth.getSession();
+              if (finalSessionData.session) {
+                window.location.reload(); // Reload to restart the process with session
+                return;
+              }
+            }
+            
+            throw new Error('No authentication data found. Please try signing in again.');
           }
         }
       } catch (error) {
@@ -120,8 +143,8 @@ const AuthCallbackPage = () => {
       }
     };
 
-    // Add a small delay to ensure the URL is fully loaded
-    const timer = setTimeout(handleAuthCallback, 500);
+    // Add a delay to ensure the URL is fully loaded and OAuth is processed
+    const timer = setTimeout(handleAuthCallback, 1000);
     
     return () => clearTimeout(timer);
   }, [navigate]);
