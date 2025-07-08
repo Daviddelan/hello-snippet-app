@@ -48,7 +48,7 @@ const TrendingEvents = () => {
 
           // Mix real events with mock events if needed
           const allEvents = [...transformedEvents, ...mockEvents.slice(transformedEvents.length)];
-        .limit(8);
+          setEvents(allEvents.slice(0, 8));
         }
       } catch (error) {
         console.error('Error loading trending events:', error);
