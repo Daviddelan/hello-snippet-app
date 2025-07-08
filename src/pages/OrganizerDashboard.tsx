@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import DashboardSidebar from '../components/dashboard/DashboardSidebar';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import DashboardOverview from '../components/dashboard/DashboardOverview';
@@ -16,6 +16,7 @@ import { Loader, AlertCircle } from 'lucide-react';
 
 const OrganizerDashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [organizer, setOrganizer] = useState<Organizer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
