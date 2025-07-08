@@ -9,7 +9,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, organizer }) => {
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Left side */}
@@ -23,7 +23,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, organize
             
             <div className="hidden lg:block">
               <h1 className="text-2xl font-bold text-gray-900">
-                Welcome back, {organizer?.first_name || 'Organizer'}!
+                {organizer?.organization_name || 'Dashboard'}
               </h1>
             </div>
           </div>

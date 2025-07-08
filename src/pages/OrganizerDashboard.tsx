@@ -119,16 +119,18 @@ const OrganizerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <DashboardSidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)}
-        onCreateEvent={handleCreateEvent}
-      />
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+        <DashboardSidebar 
+          isOpen={true} 
+          onClose={() => setSidebarOpen(false)}
+          onCreateEvent={handleCreateEvent}
+        />
+      </div>
 
       {/* Main Content */}
-      <div className="lg:pl-64">
+      <div className="flex-1 lg:pl-64">
         {/* Header */}
         <DashboardHeader 
           onMenuClick={() => setSidebarOpen(true)}
@@ -136,7 +138,7 @@ const OrganizerDashboard = () => {
         />
 
         {/* Page Content */}
-        <main className="py-6">
+        <main className="flex-1 py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <Routes>
               <Route path="/" element={<DashboardOverview organizer={organizer} />} />
@@ -151,11 +153,33 @@ const OrganizerDashboard = () => {
       </div>
 
       {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+      <div className={`lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
+        {/* Mobile sidebar overlay */}
+        <div className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
+        
+        {/* Mobile sidebar */}
+        <div className="fixed inset-y-0 left-0 z-50 w-64">
+          <DashboardSidebar 
+            isOpen={sidebarOpen} 
+            onClose={() => setSidebarOpen(false)}
+            onCreateEvent={handleCreateEvent}
+          />
+        </div>
+      </div>
+
+      {/* Global Create Event Modal */}
+      <CreateEventModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        organizerId={organizer?.id || ''}
+        onEventCreated={handleEventCreated}
+      />
+    </div>
+  );
+};
+
+export default OrganizerDashboard;
+
       )}
 
       {/* Global Create Event Modal */}
