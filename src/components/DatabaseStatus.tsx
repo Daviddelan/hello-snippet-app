@@ -58,10 +58,9 @@ const DatabaseStatus = () => {
         
         if (!storageResult.success) {
           setStorageStatus('error');
-          console.warn('⚠️ Storage setup incomplete:', storageResult.error);
-          setStatusMessage(`Storage setup incomplete: ${storageResult.error}`);
+          console.warn('⚠️ Storage setup needed:', storageResult.error);
+          setStatusMessage('Storage bucket needs manual setup in Supabase dashboard');
         }
-        
         
         setStatusMessage('Testing organizer signup flow...');
         
@@ -234,8 +233,8 @@ const DatabaseStatus = () => {
             <div className="flex items-start space-x-2">
               <Image className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-yellow-700">
-                <p className="font-medium mb-1">Storage Setup:</p>
-                <p>Image storage requires proper Supabase storage configuration. Events can still be created without images.</p>
+                <p className="font-medium mb-1">Storage Setup Required:</p>
+                <p>Create "event-images" bucket in Supabase Dashboard → Storage → New bucket. Make it public with file upload policies.</p>
               </div>
             </div>
           </div>

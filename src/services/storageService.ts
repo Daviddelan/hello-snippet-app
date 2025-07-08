@@ -306,27 +306,38 @@ export class StorageService {
     try {
       console.log('Initializing storage bucket...');
       
-      // Try to access the bucket instead of creating it
-      // The bucket should be created manually in Supabase dashboard
+      // Check if bucket exists by trying to list files
+      const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
+      
+      if (listBucketsError) {
+        console.error('Failed to list buckets:', listBucketsError);
+        return {
+          success: false,
+          error: `Storage access failed: ${listBucketsError.message}`
+        };
+      }
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
+      
+      if (!bucketExists) {
+        console.warn(`Storage bucket '${this.BUCKET_NAME}' does not exist`);
+        return {
+          success: false,
+          error: `Storage bucket '${this.BUCKET_NAME}' not found. Please create it manually in your Supabase dashboard.`
+        };
+      }
+      
+      // Test bucket access by trying to list files
       const { data: files, error: listError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 1 });
       
       if (listError) {
-        console.warn('Storage bucket access failed:', listError);
+        console.error('Storage bucket access failed:', listError);
         
-        // If bucket doesn't exist, provide instructions
-        if (listError.message?.includes('not found') || listError.message?.includes('does not exist')) {
-          return {
-            success: false,
-            error: `Storage bucket '${this.BUCKET_NAME}' not found. Please create it manually in your Supabase dashboard under Storage.`
-          };
-        }
-        
-        // For other errors, still try to continue
-        console.warn('Storage bucket check failed, but continuing:', listError.message);
         return {
-          success: true // Allow the app to continue even if bucket check fails
+          success: false,
+          error: `Storage bucket access denied. Please check RLS policies: ${listError.message}`
         };
       }
 
@@ -336,11 +347,9 @@ export class StorageService {
     } catch (error) {
       console.error('Bucket initialization error:', error);
       
-      // Don't fail the entire app if storage isn't set up
-      console.warn('Storage initialization failed, but allowing app to continue');
       return {
         success: false,
-        error: `Storage setup incomplete. Please create the '${this.BUCKET_NAME}' bucket in your Supabase dashboard under Storage > New bucket. Make it public and allow the file types: ${this.ALLOWED_TYPES.join(', ')}`
+        error: `Storage setup incomplete: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }

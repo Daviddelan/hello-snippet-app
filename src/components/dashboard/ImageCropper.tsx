@@ -124,13 +124,6 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
         setIsUploading(true);
 
         try {
-          // Check if storage is properly set up
-          console.log('Checking storage setup before upload...');
-          const storageCheck = await StorageService.initializeBucket();
-          if (!storageCheck.success) {
-            throw new Error(`Storage not ready: ${storageCheck.error}`);
-          }
-          
           // Upload the cropped image to Supabase storage
           const uploadResult = await StorageService.uploadCroppedImage(
             blob,
@@ -143,11 +136,21 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
             onImageCropped(uploadResult.url);
           } else {
             console.error('Upload failed:', uploadResult.error);
-            setError(uploadResult.error || 'Failed to upload image');
+            
+            // Provide specific error messages for common issues
+            let errorMessage = uploadResult.error || 'Failed to upload image';
+            
+            if (errorMessage.includes('not found') || errorMessage.includes('does not exist')) {
+              errorMessage = 'Storage bucket not set up. Please create the "event-images" bucket in your Supabase dashboard.';
+            } else if (errorMessage.includes('RLS') || errorMessage.includes('row-level security')) {
+              errorMessage = 'Storage permissions issue. Please check your Supabase storage bucket policies.';
+            }
+            
+            setError(errorMessage);
           }
         } catch (uploadError) {
           console.error('Upload error:', uploadError);
-          setError('Failed to upload image to storage');
+          setError(`Upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
         } finally {
           setIsUploading(false);
           setIsProcessing(false);
@@ -231,6 +234,14 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                 <p className="text-gray-600 mb-4">
                   Choose an image for your event. It will be validated, cropped, and uploaded to secure storage.
                 </p>
+                
+                {/* Storage Setup Notice */}
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Note:</strong> Image upload requires the "event-images" storage bucket to be set up in your Supabase dashboard.
+                  </p>
+                </div>
+                
                 <label className="inline-flex items-center bg-primary-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-600 transition-colors cursor-pointer">
                   <Upload className="w-5 h-5 mr-2" />
                   Select Image
@@ -246,6 +257,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                   <p>• Maximum size: 10MB</p>
                   <p>• Minimum dimensions: 400x300px</p>
                   <p>• Will be cropped to 16:9 aspect ratio</p>
+                  <p>• Requires Supabase storage bucket setup</p>
                 </div>
               </div>
             ) : (
