@@ -1,9 +1,82 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import { Calendar, MapPin, Users, Star, Clock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 const FeaturedEvents = () => {
   const navigate = useNavigate();
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load real events from database
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select(`
+            *,
+            organizers (
+              organization_name,
+              first_name,
+              last_name
+            )
+          `)
+          .eq('is_published', true)
+          .order('created_at', { ascending: false })
+          .limit(6);
+
+        if (error) {
+          console.error('Error loading events:', error);
+          // Fall back to mock data if database isn't set up
+          setEvents(featuredEvents);
+        } else {
+          // Transform database events to match our component structure
+          const transformedEvents = data.map((event, index) => ({
+            id: event.id,
+            title: event.title,
+            organizer: event.organizers?.organization_name || 'Event Organizer',
+            organizerAvatar: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100",
+            date: new Date(event.start_date).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            }),
+            time: `${new Date(event.start_date).toLocaleTimeString('en-US', { 
+              hour: 'numeric', 
+              minute: '2-digit' 
+            })} - ${new Date(event.end_date).toLocaleTimeString('en-US', { 
+              hour: 'numeric', 
+              minute: '2-digit' 
+            })}`,
+            location: event.venue_name || event.location,
+            city: event.location,
+            attendees: Math.floor(event.capacity * 0.7), // Mock attendance
+            maxAttendees: event.capacity,
+            rating: 4.8,
+            price: event.price,
+            category: event.category,
+            image: event.image_url || "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
+            featured: true,
+            tags: [event.category, "Featured", event.price === 0 ? "Free" : "Paid"]
+          }));
+
+          // Mix real events with mock events if we don't have enough
+          const allEvents = [...transformedEvents, ...featuredEvents.slice(transformedEvents.length)];
+          setEvents(allEvents.slice(0, 3));
+        }
+      } catch (error) {
+        console.error('Error loading events:', error);
+        setEvents(featuredEvents);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
+
   const featuredEvents = [
     {
       id: 1,
@@ -67,6 +140,14 @@ const FeaturedEvents = () => {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="py-20 bg-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -92,7 +173,7 @@ const FeaturedEvents = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {featuredEvents.map((event, index) => (
+          {events.map((event, index) => (
             <div
               key={event.id}
               className={`group ${

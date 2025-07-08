@@ -124,6 +124,13 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
         setIsUploading(true);
 
         try {
+          // Check if storage is properly set up
+          console.log('Checking storage setup before upload...');
+          const storageCheck = await StorageService.initializeBucket();
+          if (!storageCheck.success) {
+            throw new Error(`Storage not ready: ${storageCheck.error}`);
+          }
+          
           // Upload the cropped image to Supabase storage
           const uploadResult = await StorageService.uploadCroppedImage(
             blob,

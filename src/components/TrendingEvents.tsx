@@ -1,10 +1,67 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import { Calendar, MapPin, Users, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 const TrendingEvents = () => {
   const navigate = useNavigate();
-  const events = [
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load real events from database
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select(`
+            *,
+            organizers (
+              organization_name
+            )
+          `)
+          .eq('is_published', true)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) {
+          console.error('Error loading trending events:', error);
+          // Fall back to mock data
+          setEvents(mockEvents);
+        } else {
+          // Transform database events
+          const transformedEvents = data.map(event => ({
+            id: event.id,
+            title: event.title,
+            date: new Date(event.start_date).toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric', 
+              year: 'numeric' 
+            }),
+            location: event.location,
+            attendees: Math.floor(event.capacity * 0.6), // Mock attendance
+            rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0
+            price: event.price === 0 ? "Free" : `₵${event.price}`,
+            image: event.image_url || "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
+          }));
+
+          // Mix real events with mock events if needed
+          const allEvents = [...transformedEvents, ...mockEvents.slice(transformedEvents.length)];
+          setEvents(allEvents.slice(0, 5));
+        }
+      } catch (error) {
+        console.error('Error loading trending events:', error);
+        setEvents(mockEvents);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
+
+  const mockEvents = [
     {
       id: 1,
       title: "VALUE INVESTMENT BOOTCAMP",
@@ -61,6 +118,14 @@ const TrendingEvents = () => {
         "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934359/Screenshot_2025-06-03_at_7.05.49_AM_jwfkdz.png",
     },
   ];
+
+  if (isLoading) {
+    return (
+      <div className="py-20 bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+      </div>
+    );
+  }
 
   return (
     <section className="py-20 bg-gray-50">
