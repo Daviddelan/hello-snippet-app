@@ -25,7 +25,7 @@ const FeaturedEvents = () => {
           `)
           .eq('is_published', true)
           .order('created_at', { ascending: false })
-          .limit(6);
+          .limit(3);
 
         if (error) {
           console.error('Error loading events:', error);
@@ -64,7 +64,7 @@ const FeaturedEvents = () => {
 
           // Mix real events with mock events if we don't have enough
           const allEvents = [...transformedEvents, ...featuredEvents.slice(transformedEvents.length)];
-          setEvents(allEvents.slice(0, 3));
+          setEvents(allEvents.slice(0, 3)); // Always show exactly 3 events
         }
       } catch (error) {
         console.error('Error loading events:', error);
@@ -80,63 +80,57 @@ const FeaturedEvents = () => {
   const featuredEvents = [
     {
       id: 1,
-      title: "Fire Camp",
-      organizer: "Kingdom Christian Fellowship",
-      organizerAvatar:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1750163039/Screenshot_2025-06-17_at_12.23.49_PM_ks03cn.png",
-      date: "August 15, 2026",
+      title: "Tech Innovation Summit 2025",
+      organizer: "TechVision Events",
+      organizerAvatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100",
+      date: "March 15, 2025",
       time: "9:00 AM - 6:00 PM",
-      location: "To Be Determined",
-      city: "Accra, Ghana",
-      attendees: 2500,
-      maxAttendees: 3000,
+      location: "Convention Center",
+      city: "San Francisco, CA",
+      attendees: 450,
+      maxAttendees: 500,
       rating: 4.9,
-      price: 100,
-      category: "Christian",
-      image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933188/Screenshot_2025-06-03_at_6.46.19_AM_vkkafe.png",
+      price: 199,
+      category: "Technology",
+      image: "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
       featured: true,
-      tags: ["Grow", "Learn", "Fellowship", "Love", "Worship", "Prayer"],
+      tags: ["Innovation", "Networking", "Tech", "AI", "Future"],
     },
     {
       id: 2,
       title: "Creative Design Workshop: From Concept to Creation",
       organizer: "Design Masters Studio",
-      organizerAvatar:
-        "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100",
-      date: "July 18, 2025",
+      organizerAvatar: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100",
+      date: "March 22, 2025",
       time: "2:00 PM - 8:00 PM",
-      location: "Despite Automobile Museum",
-      city: "East Legon, Accra",
+      location: "Design Studio",
+      city: "New York, NY",
       attendees: 150,
       maxAttendees: 200,
       rating: 4.8,
-      price: 0,
-      category: "Cars",
-      image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933697/Screenshot_2025-06-03_at_6.54.43_AM_vpxpy7.png",
+      price: 149,
+      category: "Arts & Culture",
+      image: "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=400",
       featured: true,
-      tags: ["Beauty", "Workshop", "Network", "Photoshoot", "Cars"],
+      tags: ["Design", "Workshop", "Creative", "Hands-on", "Portfolio"],
     },
     {
       id: 3,
-      title: "Ghana Data Science Summit 2025",
-      organizer: "Indaba X",
-      organizerAvatar:
-        "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100",
-      date: "June 18, 2025",
-      time: "6:00 AM - 10:00 PM",
-      location: "Ashesi University",
-      city: "Berekuso, Ghana",
+      title: "Professional Networking Summit",
+      organizer: "Business Network Pro",
+      organizerAvatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=100",
+      date: "April 5, 2025",
+      time: "6:00 PM - 10:00 PM",
+      location: "Business Center",
+      city: "Chicago, IL",
       attendees: 280,
       maxAttendees: 300,
       rating: 4.7,
-      price: 0,
-      category: "Education",
-      image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933448/Screenshot_2025-06-03_at_6.50.36_AM_pvkafn.png",
+      price: 75,
+      category: "Business & Professional",
+      image: "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=400",
       featured: true,
-      tags: ["Networking", "Startup", "Business", "Free"],
+      tags: ["Networking", "Business", "Professional", "Career", "Growth"],
     },
   ];
 

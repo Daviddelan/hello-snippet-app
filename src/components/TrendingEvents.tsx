@@ -42,13 +42,13 @@ const TrendingEvents = () => {
             location: event.location,
             attendees: Math.floor(event.capacity * 0.6), // Mock attendance
             rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0
-            price: event.price === 0 ? "Free" : `₵${event.price}`,
+            price: event.price === 0 ? "Free" : `$${event.price}`,
             image: event.image_url || "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
           }));
 
           // Mix real events with mock events if needed
           const allEvents = [...transformedEvents, ...mockEvents.slice(transformedEvents.length)];
-          setEvents(allEvents.slice(0, 5));
+        .limit(8);
         }
       } catch (error) {
         console.error('Error loading trending events:', error);
@@ -64,58 +64,58 @@ const TrendingEvents = () => {
   const mockEvents = [
     {
       id: 1,
-      title: "VALUE INVESTMENT BOOTCAMP",
-      date: "Mar 15, 2024",
-      location: "Accra, Ghana",
-      attendees: 2500,
+      title: "Tech Innovation Summit",
+      date: "Mar 15, 2025",
+      location: "San Francisco, CA",
+      attendees: 500,
       rating: 4.3,
-      price: "₵10",
+      price: "$50",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934874/Screenshot_2025-06-03_at_7.14.25_AM_oaxjud.png",
+        "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
     },
     {
       id: 2,
       title: "Digital Marketing Masterclass",
-      date: "Mar 20, 2024",
-      location: "Ashesi University, Berekuso",
+      date: "Mar 20, 2025",
+      location: "New York, NY",
       attendees: 800,
       rating: 4.8,
-      price: "₵10",
+      price: "$75",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934755/Screenshot_2025-06-03_at_7.12.23_AM_eh4kma.png",
+        "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=400",
     },
     {
       id: 3,
-      title: "Fire Festival",
-      date: "Mar 25, 2024",
-      location: "Evans Anfom Auditorium Complex",
+      title: "Creative Design Workshop",
+      date: "Mar 25, 2025",
+      location: "Los Angeles, CA",
       attendees: 300,
       rating: 4.7,
       price: "Free",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934638/Screenshot_2025-06-03_at_7.10.30_AM_kkf845.png",
+        "https://images.pexels.com/photos/1181263/pexels-photo-1181263.jpeg?auto=compress&cs=tinysrgb&w=400",
     },
     {
       id: 4,
-      title: "CHAYIL CONFERENCE 2025",
-      date: "July 2, 2024",
-      location: "Tema, Ghana",
+      title: "Business Networking Event",
+      date: "Apr 2, 2025",
+      location: "Chicago, IL",
       attendees: 1500,
       rating: 4.9,
-      price: "₵50",
+      price: "$25",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934599/Screenshot_2025-06-03_at_7.09.51_AM_xc61uv.png",
+        "https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=400",
     },
     {
       id: 5,
-      title: "Invasion 2025",
-      date: "Jun 22, 2024",
-      location: "University Of Ghana Sports Stadium",
+      title: "Music Festival",
+      date: "Jun 22, 2025",
+      location: "Austin, TX",
       attendees: 200,
       rating: 4.6,
       price: "Free",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934359/Screenshot_2025-06-03_at_7.05.49_AM_jwfkdz.png",
+        "https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=400",
     },
   ];
 

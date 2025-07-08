@@ -37,6 +37,50 @@ export class EventService {
   }
 
   /**
+   * Get published events for public display
+   */
+  static async getPublishedEvents(limit: number = 10) {
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select(`
+          *,
+          organizers (
+            organization_name,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('is_published', true)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        // If table doesn't exist, return empty array instead of error
+        if (error.code === '42P01') {
+          console.warn('Events table does not exist yet. Please run the database migration.');
+          return {
+            success: true,
+            events: []
+          };
+        }
+        throw new Error(`Published events fetch error: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        events: data || []
+      };
+    } catch (error) {
+      console.error('Published events fetch error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred'
+      };
+    }
+  }
+
+  /**
    * Get all events for an organizer
    */
   static async getOrganizerEvents(organizerId: string) {
