@@ -337,8 +337,8 @@ const SignInPage = () => {
                 <div className="text-center mt-6 pt-6 border-t border-gray-200">
                   <p className="text-gray-600">
                     Don't have an account?{' '}
-                    <Link to="/signup/organizer" className="text-primary-500 hover:text-primary-600 font-semibold">
-                      Sign Up as Organizer
+                    <Link to="/signup" className="text-primary-500 hover:text-primary-600 font-semibold">
+                      Sign Up
                     </Link>
                   </p>
                 </div>
