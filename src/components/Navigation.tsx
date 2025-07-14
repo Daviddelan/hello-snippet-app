@@ -159,10 +159,10 @@ const Navigation = () => {
               </div>
             ) : (
               <Link
-                to="/signin"
+                to="/signup"
                 className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
-                Sign In
+                Get Started
               </Link>
             )}
           </div>
@@ -224,11 +224,11 @@ const Navigation = () => {
                   </div>
                 ) : (
                   <Link
-                    to="/signin"
+                    to="/signup"
                     className="w-full block text-center bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-3 rounded-xl font-semibold"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Sign In
+                    Get Started
                   </Link>
                 )}
               </div>

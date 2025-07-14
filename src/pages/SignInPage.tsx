@@ -55,20 +55,29 @@ const SignInPage = () => {
         });
 
         try {
-          // Check if user has an organizer profile
-          const organizerProfile = await OrganizerService.getOrganizerProfile(session.user.id);
+          // Check user type from metadata
+          const userType = session.user.user_metadata?.user_type;
           
-          if (organizerProfile) {
-            if (organizerProfile.profile_completed) {
-              console.log('Complete organizer profile found, redirecting to dashboard');
-              navigate('/dashboard/organizer');
+          if (userType === 'attendee') {
+            // Regular user - redirect to attendee dashboard
+            console.log('Attendee user found, redirecting to attendee dashboard');
+            navigate('/dashboard/attendee');
+          } else {
+            // Check if user has an organizer profile (for organizers or users without user_type)
+            const organizerProfile = await OrganizerService.getOrganizerProfile(session.user.id);
+            
+            if (organizerProfile) {
+              if (organizerProfile.profile_completed) {
+                console.log('Complete organizer profile found, redirecting to organizer dashboard');
+                navigate('/dashboard/organizer');
+              } else {
+                console.log('Incomplete organizer profile found, redirecting to complete profile');
+                navigate('/complete-profile');
+              }
             } else {
-              console.log('Incomplete organizer profile found, redirecting to complete profile');
+              console.log('No organizer profile found, redirecting to complete profile');
               navigate('/complete-profile');
             }
-          } else {
-            console.log('No organizer profile found, redirecting to complete profile');
-            navigate('/complete-profile');
           }
         } catch (error) {
           console.error('Error checking organizer profile:', error);

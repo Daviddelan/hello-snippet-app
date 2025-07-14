@@ -12,6 +12,9 @@ import LandingPage from "./pages/LandingPage";
 import EventDetailsPage from "./pages/EventDetailsPage";
 import CreateEventPage from "./pages/CreateEventPage";
 import AboutPage from "./pages/AboutPage";
+import UserTypeSelectionPage from "./pages/UserTypeSelectionPage";
+import SignUpAttendeePage from "./pages/SignUpAttendeePage";
+import AttendeeDashboard from "./pages/AttendeeDashboard";
 
 function App() {
   return (
@@ -20,7 +23,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/discover" element={<DiscoverPage />} />
         <Route path="/HomePage" element={<HomePage />} />
+        <Route path="/signup" element={<UserTypeSelectionPage />} />
         <Route path="/signup/organizer" element={<SignUpOrganizerPage />} />
+        <Route path="/signup/attendee" element={<SignUpAttendeePage />} />
         <Route path="/signin" element={<SignInPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/complete-profile" element={<CompleteProfilePage />} />
@@ -39,6 +44,14 @@ function App() {
               <OrganizerDashboard />
             </ProtectedRoute>
           }
+        />
+        <Route 
+          path="/dashboard/attendee" 
+          element={
+            <ProtectedRoute>
+              <AttendeeDashboard />
+            </ProtectedRoute>
+          } 
         />
         <Route path="/event/:id" element={<EventDetailsPage />} />
         <Route path="/about" element={<AboutPage />} />
