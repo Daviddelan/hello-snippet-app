@@ -36,30 +36,39 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
         console.log('User found:', user.email);
 
-        // Check if user has an organizer profile
-        try {
-          const organizerProfile = await OrganizerService.getOrganizerProfile(user.id);
-          
-          if (!organizerProfile) {
-            console.log('No organizer profile found, redirecting to complete profile');
-            navigate('/complete-profile');
-            return;
-          }
+        // Check user type and handle accordingly
+        const userType = user.user_metadata?.user_type;
+        
+        if (userType === 'attendee') {
+          // Regular user - allow access to attendee routes
+          console.log('Attendee user authenticated');
+          setIsAuthenticated(true);
+        } else {
+          // Check if user has an organizer profile (for organizers or users without user_type)
+          try {
+            const organizerProfile = await OrganizerService.getOrganizerProfile(user.id);
+            
+            if (!organizerProfile) {
+              console.log('No organizer profile found, redirecting to complete profile');
+              navigate('/complete-profile');
+              return;
+            }
 
-          if (!organizerProfile.profile_completed) {
-            console.log('Profile not completed, redirecting to complete profile');
-            navigate('/complete-profile');
+            if (!organizerProfile.profile_completed) {
+              console.log('Profile not completed, redirecting to complete profile');
+              navigate('/complete-profile');
+              return;
+            }
+            console.log('Organizer profile found:', organizerProfile.organization_name);
+            setIsAuthenticated(true);
+          } catch (profileError) {
+            console.error('Error fetching organizer profile:', profileError);
+            // If there's an error fetching profile, it might be a database issue
+            // Let's try to continue and see if the user can access the dashboard
+            console.log('Profile fetch error, but continuing to dashboard');
+            setIsAuthenticated(true);
             return;
           }
-          console.log('Organizer profile found:', organizerProfile.organization_name);
-          setIsAuthenticated(true);
-        } catch (profileError) {
-          console.error('Error fetching organizer profile:', profileError);
-          // If there's an error fetching profile, it might be a database issue
-          // Let's try to continue and see if the user can access the dashboard
-          console.log('Profile fetch error, but continuing to dashboard');
-          setIsAuthenticated(true);
-          return;
         }
 
       } catch (error) {

@@ -47,6 +47,10 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
+          },
+          // Set default user type for Google sign-ins (can be updated later)
+          data: {
+            user_type: 'attendee'
           }
         }
       });
