@@ -4,7 +4,7 @@ A modern, full-featured event management platform built with React, TypeScript, 
 
 ## Features
 
-### 🎯 Core Functionality
+### Core Functionality
 - **Event Creation & Management**: Create, edit, and manage events with rich details
 - **Image Upload & Processing**: Secure image upload with automatic cropping and validation
 - **Location Integration**: Google Maps integration for precise location selection
@@ -12,21 +12,21 @@ A modern, full-featured event management platform built with React, TypeScript, 
 - **Real-time Analytics**: Track event performance and attendee engagement
 - **Responsive Design**: Beautiful, mobile-first design that works on all devices
 
-### 🔒 Security & Validation
+### Security & Validation
 - **Server-side Validation**: Comprehensive validation for all user inputs
 - **Image Security**: File type, size, and dimension validation for uploaded images
 - **Location Validation**: Coordinate and address validation for event locations
 - **XSS Protection**: Input sanitization to prevent cross-site scripting
 - **SQL Injection Protection**: Parameterized queries through Supabase
 
-### 🖼️ Image Management
+### Image Management
 - **Supabase Storage**: Secure cloud storage for event images
 - **Image Cropping**: Built-in cropping tool with 16:9 aspect ratio for slideshow compatibility
 - **Format Support**: JPG, PNG, GIF, and WebP formats
 - **Size Validation**: Maximum 10MB file size with dimension requirements
 - **Automatic Optimization**: Images are processed and optimized for web delivery
 
-### 🗺️ Location Features
+### Location Features
 - **Google Maps Integration**: Interactive map for location selection
 - **Address Autocomplete**: Smart address suggestions and validation
 - **Coordinate Validation**: Precise latitude/longitude validation
