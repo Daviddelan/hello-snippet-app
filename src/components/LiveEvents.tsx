@@ -24,7 +24,7 @@ const LiveEvents = () => {
       maxAttendees: 1000,
       status: "starting-soon",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933697/Screenshot_2025-06-03_at_6.54.43_AM_vpxpy7.png",
+        "https://i.ibb.co/993ks9hv/image-4.webp",
     },
     {
       id: 2,
@@ -36,7 +36,7 @@ const LiveEvents = () => {
       maxAttendees: 300,
       status: "starting-soon",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933849/Screenshot_2025-06-03_at_6.57.10_AM_dyse09.png",
+        "https://i.ibb.co/LwMKb00/image-3.webp",
     },
     {
       id: 3,
@@ -48,7 +48,7 @@ const LiveEvents = () => {
       maxAttendees: 50,
       status: "live",
       image:
-        "https://res.cloudinary.com/dt3xctihn/image/upload/v1748934175/Screenshot_2025-06-03_at_7.02.29_AM_dftvlw.png",
+        "https://i.ibb.co/JRzg5ZHz/image-2.webp",
     },
   ];
 

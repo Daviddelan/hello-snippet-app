@@ -23,7 +23,7 @@ const event = {
   time: "9:00 AM - 6:00 PM",
   location: "To Be Determined, Accra, Ghana",
   image:
-    "https://res.cloudinary.com/dt3xctihn/image/upload/v1748933188/Screenshot_2025-06-03_at_6.46.19_AM_vkkafe.png",
+    "https://i.ibb.co/PGG5x6kk/image-1.webp",
   description:
     "Join us for an unforgettable day of worship, learning, and connection at Fire Camp 2025! Experience inspiring speakers, live music, and a vibrant community.",
   organizer: "Kingdom Christian Fellowship",
