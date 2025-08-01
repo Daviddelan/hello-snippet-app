@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Calendar,
   MapPin,
@@ -13,8 +13,10 @@ import {
   Mail,
   User,
   Ticket,
+  Loader,
 } from "lucide-react";
 import Navigation from "../components/Navigation";
+import { PaystackService, type PaystackTransaction } from "../services/paystackService";
 
 // Example event data (replace with real data fetching logic)
 const event = {
@@ -37,6 +39,91 @@ const event = {
 };
 
 const EventDetailsPage = () => {
+  // Payment state
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'failed'>('idle');
+  const [registrationData, setRegistrationData] = useState({
+    name: '',
+    email: ''
+  });
+
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setRegistrationData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle payment process
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!registrationData.name || !registrationData.email) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setIsProcessingPayment(true);
+    setPaymentStatus('processing');    const transactionData: PaystackTransaction = {
+      email: registrationData.email,
+      amount: PaystackService.formatAmountToPesewas(event.price), // Convert to pesewas
+      currency: 'GHS',
+      reference: PaystackService.generateReference('EVT'),
+      metadata: {
+        event_id: 'fire_camp_2025',
+        event_title: event.title,
+        attendee_name: registrationData.name,
+        custom_fields: [
+          {
+            display_name: 'Event',
+            variable_name: 'event',
+            value: event.title
+          },
+          {
+            display_name: 'Attendee',
+            variable_name: 'attendee',
+            value: registrationData.name
+          }
+        ]
+      }
+    };
+
+    try {
+      await PaystackService.processPayment(
+        transactionData,
+        async (response) => {
+          // Payment successful
+          console.log('Payment response:', response);
+          setPaymentStatus('success');
+          
+          // Verify transaction
+          const verification = await PaystackService.verifyTransaction(response.reference);
+          if (verification.status) {
+            console.log('Transaction verified successfully');
+            // Here you would typically save the registration to your database
+            alert(`🎉 Payment successful! Welcome to ${event.title}, ${registrationData.name}!`);
+          } else {
+            console.error('Transaction verification failed');
+            setPaymentStatus('failed');
+          }
+          
+          setIsProcessingPayment(false);
+        },
+        () => {
+          // Payment cancelled or failed
+          setPaymentStatus('idle');
+          setIsProcessingPayment(false);
+        }
+      );
+    } catch (error) {
+      console.error('Payment error:', error);
+      setPaymentStatus('failed');
+      setIsProcessingPayment(false);
+      alert('Payment failed. Please try again.');
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200 text-gray-900 relative overflow-x-hidden font-['Inter']">
       <Navigation />
@@ -52,10 +139,9 @@ const EventDetailsPage = () => {
             />
             <div className="absolute top-4 left-4 bg-white/90 px-4 py-2 rounded-xl shadow text-purple-700 font-bold text-sm flex items-center gap-2">
               <Calendar className="w-4 h-4" /> {event.date}
-            </div>
-            <div className="absolute top-4 right-4 bg-purple-600/90 text-white px-4 py-2 rounded-xl shadow text-sm font-bold flex items-center gap-2">
+            </div>            <div className="absolute top-4 right-4 bg-purple-600/90 text-white px-4 py-2 rounded-xl shadow text-sm font-bold flex items-center gap-2">
               <Ticket className="w-4 h-4" />{" "}
-              {event.isFree ? "FREE" : `$${event.price}`}
+              {event.isFree ? "FREE" : `₵${event.price}`}
             </div>
           </div>
           {/* Event Details */}
@@ -90,65 +176,134 @@ const EventDetailsPage = () => {
               </span>
             </div>
             {/* Registration/Join Panel */}
-            {event.isRegistrationOpen ? (
-              <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl p-8 flex flex-col gap-6 items-center max-w-lg mx-auto">
+            {event.isRegistrationOpen ? (              <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl p-8 flex flex-col gap-6 items-center max-w-lg mx-auto">
+                {/* Demo Notice */}                <div className="w-full bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
+                    <AlertCircle className="w-5 h-5" />
+                    Paystack Test Mode
+                  </div>
+                  <p className="text-blue-700 text-sm mb-2">
+                    This is using Paystack's test environment. No real money will be charged.
+                  </p>
+                  <div className="text-blue-600 text-xs">
+                    <strong>Test Cards:</strong><br/>
+                    • Mastercard: 5531 8866 5214 2950 (CVV: 564, PIN: 3310)<br/>
+                    • Visa: 4084 0840 8408 4081 (CVV: 408, PIN: 0000)<br/>
+                    • Verve: 5061 0201 0000 0000 004 (CVV: 123, PIN: 1111)
+                  </div>
+                </div>
+
                 <h2 className="text-2xl font-bold text-purple-800 mb-2">
                   Register for this Event
-                </h2>
-                <form className="w-full flex flex-col gap-4">
+                </h2><form onSubmit={handlePayment} className="w-full flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row gap-4 w-full">
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-purple-700 mb-1">
-                        Name
+                        Name *
                       </label>
                       <input
                         type="text"
+                        name="name"
+                        value={registrationData.name}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-3 rounded-xl border border-purple-200 focus:ring-2 focus:ring-purple-400/20 focus:border-purple-500 transition-colors"
                         placeholder="Your Name"
                         required
+                        disabled={isProcessingPayment}
                       />
                     </div>
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-purple-700 mb-1">
-                        Email
+                        Email *
                       </label>
                       <input
                         type="email"
+                        name="email"
+                        value={registrationData.email}
+                        onChange={handleInputChange}
                         className="w-full px-4 py-3 rounded-xl border border-purple-200 focus:ring-2 focus:ring-purple-400/20 focus:border-purple-500 transition-colors"
                         placeholder="you@email.com"
                         required
+                        disabled={isProcessingPayment}
                       />
                     </div>
                   </div>
                   {!event.isFree && (
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-purple-700 mb-1">
-                        Payment
+                        Payment Method
                       </label>
-                      <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3">
-                        <CreditCard className="w-5 h-5 text-purple-500" />
-                        <span className="font-semibold text-purple-700">
-                          Card payment (Stripe/Paystack)
+                      <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl px-4 py-3">
+                        <CreditCard className="w-5 h-5 text-green-600" />
+                        <span className="font-semibold text-green-700">
+                          Paystack - Card, Bank Transfer, USSD
                         </span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-600 flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-green-500" />
+                        <span>Secure payment powered by Paystack</span>
                       </div>
                     </div>
                   )}
+                  
+                  {/* Payment Status Indicator */}
+                  {paymentStatus === 'processing' && (
+                    <div className="flex items-center justify-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                      <Loader className="w-4 h-4 animate-spin text-blue-500" />
+                      <span className="text-blue-700 font-medium">Processing payment...</span>
+                    </div>
+                  )}
+                  
+                  {paymentStatus === 'success' && (
+                    <div className="flex items-center justify-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      <span className="text-green-700 font-medium">Payment successful! 🎉</span>
+                    </div>
+                  )}
+                  
+                  {paymentStatus === 'failed' && (
+                    <div className="flex items-center justify-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-red-700 font-medium">Payment failed. Please try again.</span>
+                    </div>
+                  )}
+
                   <button
                     type="submit"
-                    className="mt-4 w-full bg-gradient-to-r from-purple-500 to-purple-700 text-white py-4 rounded-2xl font-bold text-xl shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 flex items-center justify-center gap-2"
+                    disabled={isProcessingPayment || paymentStatus === 'success'}
+                    className={`mt-4 w-full py-4 rounded-2xl font-bold text-xl shadow-xl transition-all duration-200 flex items-center justify-center gap-2 ${
+                      isProcessingPayment 
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : paymentStatus === 'success'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gradient-to-r from-purple-500 to-purple-700 text-white hover:scale-105 hover:shadow-2xl'
+                    }`}
                   >
-                    <CheckCircle className="w-6 h-6" /> Register Now
+                    {isProcessingPayment ? (
+                      <>
+                        <Loader className="w-6 h-6 animate-spin" />
+                        Processing...
+                      </>
+                    ) : paymentStatus === 'success' ? (
+                      <>
+                        <CheckCircle className="w-6 h-6" />
+                        Registration Complete!
+                      </>                    ) : (
+                      <>
+                        <CreditCard className="w-6 h-6" />
+                        {event.isFree ? 'Register Now' : `Pay ₵${event.price} - Register Now`}
+                      </>
+                    )}
                   </button>
-                </form>
-                <div className="flex flex-col md:flex-row gap-4 mt-6 w-full items-center justify-between">
+                </form>                <div className="flex flex-col md:flex-row gap-4 mt-6 w-full items-center justify-between text-sm">
                   <div className="flex items-center gap-2 text-green-600 font-medium">
-                    <ShieldCheck className="w-5 h-5" /> Secure checkout
+                    <ShieldCheck className="w-4 h-4" /> Paystack Secure
+                  </div>
+                  <div className="flex items-center gap-2 text-blue-600 font-medium">
+                    <CreditCard className="w-4 h-4" /> Cards, Transfer, USSD
                   </div>
                   <div className="flex items-center gap-2 text-purple-600 font-medium">
-                    <Lock className="w-5 h-5" /> No hidden fees
-                  </div>
-                  <div className="flex items-center gap-2 text-purple-600 font-medium">
-                    <AlertCircle className="w-5 h-5" /> Refunds available
+                    <Lock className="w-4 h-4" /> 256-bit SSL
                   </div>
                 </div>
               </div>
