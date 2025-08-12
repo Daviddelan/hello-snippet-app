@@ -24,7 +24,6 @@ const HeroCarousel = () => {
 
   const loadEvents = async () => {
     try {
-      setIsLoading(true);
       console.log('Loading events for hero carousel...');
       
       const { data, error } = await supabase
@@ -42,13 +41,17 @@ const HeroCarousel = () => {
         .limit(4);
 
       if (error) {
-        console.error('Error loading hero events:', error);
+        console.warn('Error loading hero events (this is normal if tables don\'t exist yet):', error);
+        // If it's a table doesn't exist error, that's fine - just show fallback
+        if (error.code === '42P01') {
+          console.log('Events table doesn\'t exist yet - showing fallback hero');
+        }
         setEvents([]);
-        return;
+      } else {
+        console.log('Hero events loaded:', data?.length || 0);
+        setEvents(data || []);
       }
 
-      console.log('Hero events loaded:', data?.length || 0);
-      setEvents(data || []);
     } catch (error) {
       console.error('Error loading hero events:', error);
       setEvents([]);
