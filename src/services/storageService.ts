@@ -616,7 +616,6 @@ Policy 4 - Allow authenticated deletes:
         
         if (deleteError) {
           console.warn('⚠️ Test file cleanup failed:', deleteError);
-        } else {
           console.log('✅ Test file cleaned up');
         }
 
@@ -625,10 +624,9 @@ Policy 4 - Allow authenticated deletes:
       
       console.error('❌ DIAGNOSTIC FAILED:', error);
       return {
-        success: false,
         error: `Storage check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         error: `Storage diagnostic failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          diagnosticSteps: diagnosticResults.steps
+          error: error
         instructions: 'Unexpected error occurred. Please check your Supabase configuration, API keys, and network connection.'
       };
     }
