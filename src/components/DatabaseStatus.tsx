@@ -53,13 +53,15 @@ const DatabaseStatus = () => {
         setStatusMessage('Checking storage setup...');
         
         // Check storage setup
-        const storageResult = await StorageService.initializeBucket();
+        const storageResult = await StorageService.initializeBucketDetailed();
         setStorageStatus(storageResult.success ? 'success' : 'error');
         
         if (!storageResult.success) {
           setStorageStatus('error');
-          console.warn('⚠️ Storage setup needed:', storageResult.error);
-          setStatusMessage('Storage bucket needs manual setup in Supabase dashboard');
+          console.warn('⚠️ Storage setup issue:', storageResult.error);
+          console.log('📋 Storage details:', storageResult.details);
+          console.log('📝 Setup instructions:', storageResult.instructions);
+          setStatusMessage(storageResult.error || 'Storage bucket needs setup');
         }
         
         setStatusMessage('Testing organizer signup flow...');

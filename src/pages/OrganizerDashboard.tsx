@@ -9,6 +9,7 @@ import Attendees from '../components/dashboard/Attendees';
 import Marketing from '../components/dashboard/Marketing';
 import Settings from '../components/dashboard/Settings';
 import CreateEventModal from '../components/dashboard/CreateEventModal';
+import StorageDiagnostic from '../components/StorageDiagnostic';
 import { supabase } from '../lib/supabase';
 import { OrganizerService } from '../services/organizerService';
 import type { Organizer } from '../lib/supabase';
@@ -140,6 +141,13 @@ const OrganizerDashboard = () => {
         {/* Page Content */}
         <main className="flex-1 py-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            {/* Storage Diagnostic - only show on overview page */}
+            {location.pathname === '/dashboard/organizer' && (
+              <div className="mb-6">
+                <StorageDiagnostic />
+              </div>
+            )}
+            
             <Routes>
               <Route path="/" element={<DashboardOverview organizer={organizer} />} />
               <Route path="/events" element={<EventsManagement organizer={organizer} />} />

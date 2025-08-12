@@ -306,42 +306,69 @@ export class StorageService {
     try {
       console.log('Initializing storage bucket...');
       
-      // Check if bucket exists by trying to list files
-      const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
-      
-      if (listBucketsError) {
-        console.error('Failed to list buckets:', listBucketsError);
-        return {
-          success: false,
-          error: `Storage access failed: ${listBucketsError.message}`
-        };
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
-      
-      if (!bucketExists) {
-        console.warn(`Storage bucket '${this.BUCKET_NAME}' does not exist`);
-        return {
-          success: false,
-          error: `Storage bucket '${this.BUCKET_NAME}' not found. Please create it manually in your Supabase dashboard.`
-        };
-      }
-      
-      // Test bucket access by trying to list files
-      const { data: files, error: listError } = await supabase.storage
+      // First, try to access the bucket directly
+      console.log('Testing direct bucket access...');
+      const { data: testFiles, error: testError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 1 });
       
-      if (listError) {
-        console.error('Storage bucket access failed:', listError);
+      if (testError) {
+        console.error('Direct bucket access failed:', testError);
         
+        // If bucket doesn't exist, try to list all buckets to see what's available
+        console.log('Checking available buckets...');
+        const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
+        
+        if (listBucketsError) {
+          console.error('Failed to list buckets:', listBucketsError);
+          return {
+            success: false,
+            error: `Storage access failed: ${listBucketsError.message}. Please check your Supabase API keys and storage permissions.`
+          };
+        }
+        
+        console.log('Available buckets:', buckets?.map(b => b.name) || []);
+        const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
+        
+        if (!bucketExists) {
+          return {
+            success: false,
+            error: `Storage bucket '${this.BUCKET_NAME}' not found. Available buckets: ${buckets?.map(b => b.name).join(', ') || 'none'}. Please create the '${this.BUCKET_NAME}' bucket in your Supabase dashboard.`
+          };
+        }
+        
+        // Bucket exists but access failed - likely a permissions issue
         return {
           success: false,
-          error: `Storage bucket access denied. Please check RLS policies: ${listError.message}`
+          error: `Storage bucket '${this.BUCKET_NAME}' exists but access is denied. Please check bucket policies and RLS settings in your Supabase dashboard.`
         };
       }
-
-      console.log('Storage bucket initialized successfully');
+      
+      console.log('✅ Storage bucket access successful');
+      
+      // Try a test upload to verify write permissions
+      console.log('Testing upload permissions...');
+      const testBlob = new Blob(['test'], { type: 'text/plain' });
+      const testFileName = `test_${Date.now()}.txt`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .upload(testFileName, testBlob);
+      
+      if (uploadError) {
+        console.error('Upload test failed:', uploadError);
+        return {
+          success: false,
+          error: `Storage upload test failed: ${uploadError.message}. Please check bucket policies and ensure uploads are allowed.`
+        };
+      }
+      
+      // Clean up test file
+      await supabase.storage
+        .from(this.BUCKET_NAME)
+        .remove([testFileName]);
+      
+      console.log('✅ Storage upload test successful');
       return { success: true };
 
     } catch (error) {
@@ -349,7 +376,166 @@ export class StorageService {
       
       return {
         success: false,
-        error: `Storage setup incomplete: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Storage setup error: ${error instanceof Error ? error.message : 'Unknown error'}. Please verify your Supabase configuration.`
+      };
+    }
+  }
+
+  /**
+   * Create storage bucket with proper policies (for manual setup guidance)
+   */
+  static getBucketSetupInstructions(): string {
+    return `
+To set up the storage bucket manually in your Supabase dashboard:
+
+1. Go to Storage in your Supabase dashboard
+2. Click "Create a new bucket"
+3. Name it: ${this.BUCKET_NAME}
+4. Make it PUBLIC
+5. Add these RLS policies:
+
+Policy 1 - Allow public read access:
+- Policy name: "Public read access"
+- Allowed operation: SELECT
+- Target roles: public
+- USING expression: true
+
+Policy 2 - Allow authenticated uploads:
+- Policy name: "Authenticated uploads"
+- Allowed operation: INSERT
+- Target roles: authenticated
+- WITH CHECK expression: true
+
+Policy 3 - Allow authenticated updates:
+- Policy name: "Authenticated updates"  
+- Allowed operation: UPDATE
+- Target roles: authenticated
+- USING expression: true
+- WITH CHECK expression: true
+
+Policy 4 - Allow authenticated deletes:
+- Policy name: "Authenticated deletes"
+- Allowed operation: DELETE
+- Target roles: authenticated
+- USING expression: true
+`;
+  }
+
+  /**
+   * Alternative bucket initialization with more detailed error handling
+   */
+  static async initializeBucketDetailed(): Promise<{ 
+    success: boolean; 
+    error?: string; 
+    details?: any;
+    instructions?: string;
+  }> {
+    try {
+      console.log('🔍 Detailed bucket initialization check...');
+      
+      // Step 1: Check Supabase connection
+      console.log('Step 1: Testing Supabase connection...');
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log('Auth status:', user ? `Authenticated as ${user.email}` : 'Not authenticated');
+      
+      // Step 2: List all buckets
+      console.log('Step 2: Listing all storage buckets...');
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        return {
+          success: false,
+          error: `Cannot access storage: ${listError.message}`,
+          details: { step: 'list_buckets', error: listError },
+          instructions: 'Please check your Supabase API keys and storage permissions.'
+        };
+      }
+      
+      console.log('Available buckets:', buckets?.map(b => ({ name: b.name, public: b.public })) || []);
+      
+      // Step 3: Check if our bucket exists
+      const targetBucket = buckets?.find(bucket => bucket.name === this.BUCKET_NAME);
+      
+      if (!targetBucket) {
+        return {
+          success: false,
+          error: `Bucket '${this.BUCKET_NAME}' not found`,
+          details: { 
+            availableBuckets: buckets?.map(b => b.name) || [],
+            targetBucket: this.BUCKET_NAME
+          },
+          instructions: this.getBucketSetupInstructions()
+        };
+      }
+      
+      console.log('✅ Target bucket found:', targetBucket);
+      
+      // Step 4: Test bucket access
+      console.log('Step 4: Testing bucket file listing...');
+      const { data: files, error: listFilesError } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .list('', { limit: 1 });
+      
+      if (listFilesError) {
+        return {
+          success: false,
+          error: `Bucket access denied: ${listFilesError.message}`,
+          details: { 
+            step: 'list_files', 
+            error: listFilesError,
+            bucketInfo: targetBucket
+          },
+          instructions: 'Please check bucket RLS policies. The bucket exists but access is denied.'
+        };
+      }
+      
+      console.log('✅ Bucket file listing successful');
+      
+      // Step 5: Test upload permissions
+      console.log('Step 5: Testing upload permissions...');
+      const testBlob = new Blob(['test-upload'], { type: 'text/plain' });
+      const testPath = `test_${Date.now()}.txt`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .upload(testPath, testBlob);
+      
+      if (uploadError) {
+        
+        return {
+          success: false,
+          error: `Upload test failed: ${uploadError.message}`,
+          details: { 
+            step: 'test_upload', 
+            error: uploadError,
+            bucketInfo: targetBucket
+          },
+          instructions: 'Bucket exists but uploads are not allowed. Please check upload policies.'
+        };
+      }
+      
+      // Clean up test file
+      await supabase.storage
+        .from(this.BUCKET_NAME)
+        .remove([testPath]);
+      
+      console.log('✅ All storage tests passed!');
+      return { 
+        success: true,
+        details: {
+          bucketInfo: targetBucket,
+          testResults: 'All tests passed'
+        }
+      };
+
+    } catch (error) {
+      console.error('Detailed bucket check error:', error);
+      
+      return {
+        success: false,
+        error: `Storage check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: { step: 'unexpected_error', error },
+        instructions: 'Please check your Supabase configuration and try again.'
       };
     }
   }
