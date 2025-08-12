@@ -11,17 +11,19 @@ const HeroCarousel = () => {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    // Set a maximum loading time of 3 seconds
+    console.log('🔍 HeroCarousel: Component mounted, starting data load...');
+    
+    // Set maximum loading time of 2 seconds
     const maxLoadingTimer = setTimeout(() => {
       console.log('⏰ HeroCarousel: Maximum loading time reached, clearing loading state');
       setIsLoading(false);
-    }, 3000);
+    }, 2000);
 
     const loadEvents = async () => {
       try {
-        console.log('🚀 HeroCarousel: Starting to load events...');
+        console.log('🚀 HeroCarousel: Attempting to load events...');
         
-        // Simple, direct query with minimal complexity
+        // Simple query to events table
         const { data, error } = await supabase
           .from('events')
           .select('*')
@@ -29,14 +31,14 @@ const HeroCarousel = () => {
           .order('created_at', { ascending: false })
           .limit(4);
 
-        console.log('📊 HeroCarousel: Query result:', { 
+        console.log('📊 HeroCarousel: Query completed', { 
           dataLength: data?.length || 0, 
           errorCode: error?.code,
           errorMessage: error?.message 
         });
 
         if (error) {
-          console.warn('⚠️ HeroCarousel: Database error (this is OK):', error.code, error.message);
+          console.warn('⚠️ HeroCarousel: Database error (this is expected if tables don\'t exist):', error.code, error.message);
           setHasError(true);
           setEvents([]);
         } else {
@@ -50,7 +52,6 @@ const HeroCarousel = () => {
         setHasError(true);
         setEvents([]);
       } finally {
-        // Clear the timer since we're done
         clearTimeout(maxLoadingTimer);
         console.log('🏁 HeroCarousel: Clearing loading state');
         setIsLoading(false);
@@ -59,7 +60,6 @@ const HeroCarousel = () => {
 
     loadEvents();
 
-    // Cleanup timer if component unmounts
     return () => {
       clearTimeout(maxLoadingTimer);
     };
@@ -90,8 +90,11 @@ const HeroCarousel = () => {
     navigate(`/event/${eventId}`);
   };
 
-  // Force show fallback after 3 seconds regardless of loading state
+  console.log('🎨 HeroCarousel: Rendering with state:', { isLoading, eventsCount: events.length, hasError });
+
+  // Loading state - shows for maximum 2 seconds
   if (isLoading) {
+    console.log('⏳ HeroCarousel: Showing loading state');
     return (
       <section className="relative h-screen overflow-hidden bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
         <div className="text-center text-white">
@@ -105,6 +108,7 @@ const HeroCarousel = () => {
 
   // Show database events if available
   if (events.length > 0) {
+    console.log('🎪 HeroCarousel: Showing events carousel with', events.length, 'events');
     return (
       <section className="relative h-screen overflow-hidden">
         {/* Slides */}
@@ -252,7 +256,8 @@ const HeroCarousel = () => {
     );
   }
 
-  // Fallback hero (no events or database issues)
+  // Fallback hero (no events or database issues) - THIS IS WHAT SHOULD SHOW
+  console.log('🎭 HeroCarousel: Showing fallback hero');
   return (
     <section className="relative h-screen overflow-hidden bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
       {/* Background Pattern */}
@@ -287,10 +292,7 @@ const HeroCarousel = () => {
           </h2>
 
           <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-            {hasError 
-              ? "Ready to create unforgettable experiences? Start by creating your first event or browse what's happening in your community."
-              : "Whether you're organizing corporate events, planning memorable experiences, or looking for exciting activities, HelloSnippet connects you with the perfect event ecosystem."
-            }
+            Whether you're organizing corporate events, planning memorable experiences, or looking for exciting activities, HelloSnippet connects you with the perfect event ecosystem.
           </p>
 
           {/* CTA Buttons */}
