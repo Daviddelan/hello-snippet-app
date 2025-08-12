@@ -1,356 +1,148 @@
-import { supabase } from '../lib/supabase';
+import React, { useState, useEffect } from 'react';
+import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export interface UploadResult {
-  success: boolean;
-  url?: string;
-  error?: string;
-}
+const Testimonials = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-export interface ImageValidationResult {
-  isValid: boolean;
-  error?: string;
-  metadata?: {
-    width: number;
-    height: number;
-    size: number;
-    type: string;
+  const testimonials = [
+    {
+      id: 1,
+      name: "Jesse Nii Adjetey",
+      role: "Event Organizer",
+      company: "Malleabite",
+      rating: 5,
+      text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%! I would strongly recommend this innovative solution for any event organizer out there. You all should hop on to this.",
+      avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150"
+    },
+    {
+      id: 2,
+      name: "David Dela Nuworkpor",
+      role: "Event Organizer",
+      company: "DNYD Corp",
+      rating: 5,
+      text: "Managing all the different events that we hold, right from the  corporate events to the non corporate ones have never been easier. The analytics dashboard gives us insights we never had before, helping us improve every event.",
+      avatar: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=150"
+    },
+    {
+      id: 3,
+      name: "Patrick Awuah",
+      role: "President",
+      company: "Ashesi University",
+      rating: 5,
+      text: "As the President of Ashesi University startup, we needed an affordable yet professional solution. HelloSnippet exceeded our expectations and helped us host successful networking events.",
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154577/Screenshot_2025-06-17_at_10.02.50_AM_mtvlnj.png"
+    },
+    {
+      id: 4,
+      name: "Reverend Ernest Keith",
+      role: "Entrepreneur",
+      company: "Hello Grill",
+      rating: 5,
+      text: "The attendee experience is phenomenal. People love how easy it is to discover and join the different events we hold in addition to our delicious food we serve. Our community has grown tremendously!",
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154552/Screenshot_2025-06-17_at_10.02.24_AM_hn5aq6.png"
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [testimonials.length]);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % testimonials.length);
   };
-}
 
-export class StorageService {
-  private static readonly BUCKET_NAME = 'event-images';
-  private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  private static readonly MIN_WIDTH = 400;
-  private static readonly MIN_HEIGHT = 300;
-  private static readonly MAX_WIDTH = 4000;
-  private static readonly MAX_HEIGHT = 4000;
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
 
-  /**
-   * Validate image file before upload
-   */
-  static async validateImage(file: File): Promise<ImageValidationResult> {
-    try {
-      // Check file type
-      if (!this.ALLOWED_TYPES.includes(file.type)) {
-        return {
-          isValid: false,
-          error: `Invalid file type. Allowed types: ${this.ALLOWED_TYPES.join(', ')}`
-        };
-      }
+  return (
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            What Our Users Say
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Join thousands of satisfied event organizers and attendees who trust HelloSnippet
+          </p>
+        </div>
 
-      // Check file size
-      if (file.size > this.MAX_FILE_SIZE) {
-        return {
-          isValid: false,
-          error: `File size too large. Maximum size: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB`
-        };
-      }
+        {/* Carousel Container */}
+        <div className="relative max-w-4xl mx-auto">
+          <div className="overflow-hidden rounded-3xl">
+            <div 
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+            >
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="w-full flex-shrink-0">
+                  <div className="bg-gradient-to-br from-gray-50 to-white p-8 sm:p-12 text-center">
+                    {/* Stars */}
+                    <div className="flex justify-center mb-6">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
 
-      // Check image dimensions
-      const dimensions = await this.getImageDimensions(file);
-      
-      if (dimensions.width < this.MIN_WIDTH || dimensions.height < this.MIN_HEIGHT) {
-        return {
-          isValid: false,
-          error: `Image too small. Minimum dimensions: ${this.MIN_WIDTH}x${this.MIN_HEIGHT}px`
-        };
-      }
+                    {/* Testimonial Text */}
+                    <blockquote className="text-lg sm:text-xl text-gray-700 mb-8 leading-relaxed italic">
+                      "{testimonial.text}"
+                    </blockquote>
 
-      if (dimensions.width > this.MAX_WIDTH || dimensions.height > this.MAX_HEIGHT) {
-        return {
-          isValid: false,
-          error: `Image too large. Maximum dimensions: ${this.MAX_WIDTH}x${this.MAX_HEIGHT}px`
-        };
-      }
+                    {/* User Info */}
+                    <div className="flex items-center justify-center space-x-4">
+                      <img 
+                        src={testimonial.avatar} 
+                        alt={testimonial.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                      <div className="text-left">
+                        <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                        <div className="text-sm text-gray-600">{testimonial.role}</div>
+                        <div className="text-sm text-primary-500">{testimonial.company}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      return {
-        isValid: true,
-        metadata: {
-          width: dimensions.width,
-          height: dimensions.height,
-          size: file.size,
-          type: file.type
-        }
-      };
-    } catch (error) {
-      return {
-        isValid: false,
-        error: 'Failed to validate image'
-      };
-    }
-  }
+          {/* Navigation Buttons */}
+          <button 
+            onClick={prevSlide}
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-3 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
+          </button>
+          <button 
+            onClick={nextSlide}
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white shadow-lg rounded-full p-3 hover:bg-gray-50 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-600" />
+          </button>
 
-  /**
-   * Get image dimensions from file
-   */
-  private static getImageDimensions(file: File): Promise<{ width: number; height: number }> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        resolve({
-          width: img.naturalWidth,
-          height: img.naturalHeight
-        });
-      };
-      
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image'));
-      };
-      
-      img.src = url;
-    });
-  }
+          {/* Dots Indicator */}
+          <div className="flex justify-center space-x-2 mt-8">
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                  index === currentSlide 
+                    ? 'bg-primary-500 w-8' 
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
-  /**
-   * Upload image to Supabase storage
-   */
-  static async uploadEventImage(
-    file: File, 
-    organizerId: string, 
-    eventId?: string
-  ): Promise<UploadResult> {
-    try {
-      console.log('Starting event image upload...', { 
-        fileName: file.name, 
-        fileSize: file.size, 
-        organizerId, 
-        eventId 
-      });
-      
-      // Initialize bucket first
-      const bucketInit = await this.initializeBucket();
-      if (!bucketInit.success) {
-        return {
-          success: false,
-          error: bucketInit.error || 'Failed to initialize storage'
-        };
-      }
-      
-      // Validate image first
-      const validation = await this.validateImage(file);
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: validation.error
-        };
-      }
-
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${organizerId}/${eventId || 'temp'}_${Date.now()}.${fileExt}`;
-
-      // Upload to Supabase storage
-      const { data, error } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) {
-        console.error('Storage upload error details:', {
-          message: error.message,
-          statusCode: error.statusCode,
-          error: error
-        });
-        return {
-          success: false,
-          error: `Upload failed: ${error.message || 'Unknown storage error'}`
-        };
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from(this.BUCKET_NAME)
-        .getPublicUrl(data.path);
-
-      return {
-        success: true,
-        url: urlData.publicUrl
-      };
-
-    } catch (error) {
-      console.error('Unexpected upload error:', error);
-      return {
-        success: false,
-        error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      };
-    }
-  }
-
-  /**
-   * Upload cropped image blob to storage
-   */
-  static async uploadCroppedImage(
-    blob: Blob,
-    organizerId: string,
-    eventId?: string
-  ): Promise<UploadResult> {
-    try {
-      console.log('Starting cropped image upload...', { organizerId, eventId, blobSize: blob.size });
-      
-      // Initialize bucket first
-      const bucketInit = await this.initializeBucket();
-      if (!bucketInit.success) {
-        console.error('Bucket initialization failed:', bucketInit.error);
-        return {
-          success: false,
-          error: bucketInit.error || 'Failed to initialize storage'
-        };
-      }
-      
-      // Convert blob to file for validation
-      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
-      
-      // Validate the cropped image
-      console.log('Validating cropped image...');
-      const validation = await this.validateImage(file);
-      if (!validation.isValid) {
-        console.error('Image validation failed:', validation.error);
-        return {
-          success: false,
-          error: validation.error
-        };
-      }
-
-      // Generate unique filename
-      const fileName = `${organizerId}/${eventId || 'temp'}_cropped_${Date.now()}.jpg`;
-      console.log('Uploading to path:', fileName);
-
-      // Upload to Supabase storage
-      const { data, error } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .upload(fileName, blob, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: 'image/jpeg'
-        });
-
-      if (error) {
-        console.error('Storage upload error details:', {
-          message: error.message,
-          statusCode: error.statusCode,
-          error: error
-        });
-        return {
-          success: false,
-          error: `Upload failed: ${error.message || 'Unknown storage error'}`
-        };
-      }
-
-      console.log('Upload successful, getting public URL...');
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from(this.BUCKET_NAME)
-        .getPublicUrl(data.path);
-
-      console.log('Upload completed successfully:', urlData.publicUrl);
-      return {
-        success: true,
-        url: urlData.publicUrl
-      };
-
-    } catch (error) {
-      console.error('Unexpected upload error:', error);
-      return {
-        success: false,
-        error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      };
-    }
-  }
-
-  /**
-   * Delete image from storage
-   */
-  static async deleteEventImage(imageUrl: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      // Extract file path from URL
-      const url = new URL(imageUrl);
-      const pathParts = url.pathname.split('/');
-      const fileName = pathParts[pathParts.length - 1];
-      const organizerId = pathParts[pathParts.length - 2];
-      const filePath = `${organizerId}/${fileName}`;
-
-      const { error } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .remove([filePath]);
-
-      if (error) {
-        console.error('Storage delete error:', error);
-        return {
-          success: false,
-          error: `Delete failed: ${error.message}`
-        };
-      }
-
-      return { success: true };
-
-    } catch (error) {
-      console.error('Delete error:', error);
-      return {
-        success: false,
-        error: 'An unexpected error occurred during deletion'
-      };
-    }
-  }
-
-  /**
-   * Initialize storage bucket (call this once during setup)
-   */
-  static async initializeBucket(): Promise<{ success: boolean; error?: string }> {
-    try {
-      console.log('Initializing storage bucket...');
-      
-      // Check if bucket exists by trying to list files
-      const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
-      
-      if (listBucketsError) {
-        console.error('Failed to list buckets:', listBucketsError);
-        return {
-          success: false,
-          error: `Storage access failed: ${listBucketsError.message}`
-        };
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
-      
-      if (!bucketExists) {
-        console.warn(`Storage bucket '${this.BUCKET_NAME}' does not exist`);
-        return {
-          success: false,
-          error: `Storage bucket '${this.BUCKET_NAME}' not found. Please create it manually in your Supabase dashboard.`
-        };
-      }
-      
-      // Test bucket access by trying to list files
-      const { data: files, error: listError } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .list('', { limit: 1 });
-      
-      if (listError) {
-        console.error('Storage bucket access failed:', listError);
-        
-        return {
-          success: false,
-          error: `Storage bucket access denied. Please check RLS policies: ${listError.message}`
-        };
-      }
-
-      console.log('Storage bucket initialized successfully');
-      return { success: true };
-
-    } catch (error) {
-      console.error('Bucket initialization error:', error);
-      
-      return {
-        success: false,
-        error: `Storage setup incomplete: ${error instanceof Error ? error.message : 'Unknown error'}`
-      };
-    }
-  }
-}
+export default Testimonials;
