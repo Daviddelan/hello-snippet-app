@@ -192,26 +192,30 @@ export class StorageService {
     eventId?: string
   ): Promise<UploadResult> {
     try {
-      console.log('Starting cropped image upload...', { organizerId, eventId, blobSize: blob.size });
+      console.log('🚀 Starting cropped image upload...', { organizerId, eventId, blobSize: blob.size });
       
-      // Initialize bucket first
-      const bucketInit = await this.initializeBucket();
-      if (!bucketInit.success) {
-        console.error('Bucket initialization failed:', bucketInit.error);
+      // Get detailed storage status first
+      console.log('🔍 Running detailed storage check...');
+      const detailedStatus = await this.initializeBucketDetailed();
+      
+      if (!detailedStatus.success) {
+        console.error('❌ Storage not ready:', detailedStatus);
         return {
           success: false,
-          error: bucketInit.error || 'Failed to initialize storage'
+          error: detailedStatus.error || 'Storage not ready'
         };
       }
+      
+      console.log('✅ Storage ready, proceeding with upload...');
       
       // Convert blob to file for validation
       const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
       
       // Validate the cropped image
-      console.log('Validating cropped image...');
+      console.log('🔍 Validating cropped image...');
       const validation = await this.validateImage(file);
       if (!validation.isValid) {
-        console.error('Image validation failed:', validation.error);
+        console.error('❌ Image validation failed:', validation.error);
         return {
           success: false,
           error: validation.error
@@ -220,7 +224,7 @@ export class StorageService {
 
       // Generate unique filename
       const fileName = `${organizerId}/${eventId || 'temp'}_cropped_${Date.now()}.jpg`;
-      console.log('Uploading to path:', fileName);
+      console.log('📁 Uploading to path:', fileName);
 
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
@@ -232,7 +236,7 @@ export class StorageService {
         });
 
       if (error) {
-        console.error('Storage upload error details:', {
+        console.error('❌ Storage upload error details:', {
           message: error.message,
           statusCode: error.statusCode,
           error: error
@@ -243,20 +247,20 @@ export class StorageService {
         };
       }
 
-      console.log('Upload successful, getting public URL...');
+      console.log('✅ Upload successful, getting public URL...');
       // Get public URL
       const { data: urlData } = supabase.storage
         .from(this.BUCKET_NAME)
         .getPublicUrl(data.path);
 
-      console.log('Upload completed successfully:', urlData.publicUrl);
+      console.log('🎉 Upload completed successfully:', urlData.publicUrl);
       return {
         success: true,
         url: urlData.publicUrl
       };
 
     } catch (error) {
-      console.error('Unexpected upload error:', error);
+      console.error('❌ Unexpected upload error:', error);
       return {
         success: false,
         error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -304,114 +308,55 @@ export class StorageService {
    */
   static async initializeBucket(): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('Initializing storage bucket...');
-      console.log('🔍 Environment check:');
-      console.log('- Supabase URL:', import.meta.env.VITE_SUPABASE_URL ? 'Present' : 'Missing');
-      console.log('- Supabase Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
+      console.log('🔍 Initializing storage bucket...');
       
-      // First, try to access the bucket directly
-      console.log('Testing direct bucket access...');
-      const { data: testFiles, error: testError } = await supabase.storage
+      // Check if bucket exists by listing buckets
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.error('❌ Cannot list buckets:', listError);
+        return {
+          success: false,
+          error: `Cannot access storage: ${listError.message}. Please check your Supabase connection and API keys.`
+        };
+      }
+      
+      console.log('📋 Available buckets:', buckets?.map(b => b.name) || []);
+      
+      // Check if our bucket exists
+      const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
+      
+      if (!bucketExists) {
+        console.error(`❌ Bucket '${this.BUCKET_NAME}' not found`);
+        return {
+          success: false,
+          error: `Storage bucket '${this.BUCKET_NAME}' not found. Please create it manually in your Supabase dashboard.`
+        };
+      }
+      
+      console.log(`✅ Bucket '${this.BUCKET_NAME}' found`);
+      
+      // Test bucket access
+      const { data: files, error: accessError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 1 });
       
-      if (testError) {
-        console.error('❌ Direct bucket access failed:', {
-          message: testError.message,
-          statusCode: testError.statusCode,
-          details: testError
-        });
-        
-        // If bucket doesn't exist, try to list all buckets to see what's available
-        console.log('Checking available buckets...');
-        const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
-        
-        if (listBucketsError) {
-          console.error('❌ Failed to list buckets:', {
-            message: listBucketsError.message,
-            statusCode: listBucketsError.statusCode,
-            details: listBucketsError
-          });
-          return {
-            success: false,
-            error: `Storage access failed: ${listBucketsError.message}. Please check your Supabase API keys, storage permissions, and ensure you're connected to Supabase.`
-          };
-        }
-        
-        console.log('📋 Available buckets:', buckets?.map(b => ({ 
-          name: b.name, 
-          id: b.id, 
-          public: b.public,
-          created_at: b.created_at 
-        })) || []);
-        
-        const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
-        
-        if (!bucketExists) {
-          console.error(`❌ Target bucket '${this.BUCKET_NAME}' not found in available buckets`);
-          return {
-            success: false,
-            error: `Storage bucket '${this.BUCKET_NAME}' not found. Available buckets: ${buckets?.map(b => b.name).join(', ') || 'none'}. Please verify the bucket name and ensure it exists in your Supabase dashboard.`
-          };
-        }
-        
-        console.log(`✅ Bucket '${this.BUCKET_NAME}' found in bucket list`);
-        const foundBucket = buckets?.find(b => b.name === this.BUCKET_NAME);
-        console.log('📋 Bucket details:', foundBucket);
-        
-        // Bucket exists but direct access failed - likely a permissions/RLS issue
+      if (accessError) {
+        console.error('❌ Bucket access denied:', accessError);
         return {
           success: false,
-          error: `Storage bucket '${this.BUCKET_NAME}' exists but access is denied. This is usually caused by missing RLS policies. Please check bucket policies in your Supabase dashboard Storage section.`
+          error: `Bucket access denied: ${accessError.message}. Please check your bucket RLS policies.`
         };
       }
       
-      console.log('✅ Storage bucket access successful - can list files');
-      console.log('📋 Visible files:', testFiles?.length || 0);
-      
-      // Try a test upload to verify write permissions
-      console.log('Testing upload permissions...');
-      const testBlob = new Blob(['test'], { type: 'text/plain' });
-      const testFileName = `test_${Date.now()}.txt`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .upload(testFileName, testBlob);
-      
-      if (uploadError) {
-        console.error('❌ Upload test failed:', {
-          message: uploadError.message,
-          statusCode: uploadError.statusCode,
-          details: uploadError
-        });
-        return {
-          success: false,
-          error: `Storage upload test failed: ${uploadError.message}. Please check bucket RLS policies and ensure authenticated users can INSERT files.`
-        };
-      }
-      
-      console.log('✅ Upload test successful:', uploadData);
-      
-      // Clean up test file
-      const { error: deleteError } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .remove([testFileName]);
-      
-      if (deleteError) {
-        console.warn('⚠️ Test file cleanup failed (not critical):', deleteError);
-      } else {
-        console.log('✅ Test file cleaned up successfully');
-      }
-      
-      console.log('🎉 All storage tests passed!');
+      console.log('✅ Bucket access successful');
       return { success: true };
 
     } catch (error) {
-      console.error('Bucket initialization error:', error);
-      
+      console.error('❌ Bucket initialization error:', error);
       return {
         success: false,
-        error: `Storage setup error: ${error instanceof Error ? error.message : 'Unknown error'}. Please verify your Supabase configuration and ensure you're properly connected.`
+        error: `Storage setup error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -471,8 +416,8 @@ Policy 4 - Allow authenticated deletes:
       
       // Step 1: Check Supabase connection
       console.log('STEP 1: Testing Supabase connection...');
-      console.log('- Supabase URL:', import.meta.env.VITE_SUPABASE_URL || 'MISSING');
-      console.log('- Supabase Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'MISSING');
+      console.log('- Supabase URL:', import.meta.env.VITE_SUPABASE_URL ? 'Present' : 'Missing');
+      console.log('- Supabase Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
       
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       console.log('- Auth status:', user ? `✅ Authenticated as ${user.email}` : '⚠️ Not authenticated');
@@ -483,18 +428,14 @@ Policy 4 - Allow authenticated deletes:
       
       // Step 2: List all buckets
       console.log('\nSTEP 2: Listing all storage buckets...');
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
       
-      if (listError) {
-        console.error('❌ Cannot list buckets:', {
-          message: listError.message,
-          statusCode: listError.statusCode,
-          details: listError
-        });
+      if (bucketsError) {
+        console.error('❌ Cannot list buckets:', bucketsError);
         return {
           success: false,
-          error: `Cannot access storage: ${listError.message}. This usually means your Supabase API keys are incorrect or you don't have storage permissions.`,
-          details: { step: 'list_buckets', error: listError },
+          error: `Cannot access storage: ${bucketsError.message}. Please check your Supabase API keys and ensure storage is enabled.`,
+          details: { step: 'list_buckets', error: bucketsError },
           instructions: 'Please check your Supabase API keys, ensure you\'re connected to Supabase, and verify storage is enabled in your project.'
         };
       }
@@ -505,59 +446,43 @@ Policy 4 - Allow authenticated deletes:
         console.log(`  ${index + 1}. "${bucket.name}" (${bucket.public ? 'PUBLIC' : 'PRIVATE'}, ID: ${bucket.id})`);
       });
       
-      if (!buckets || buckets.length === 0) {
-        console.log('⚠️ No buckets found in this project');
-      }
-      
-      // Step 3: Check if our bucket exists
+      // Step 3: Check target bucket
       console.log(`\nSTEP 3: Looking for target bucket "${this.BUCKET_NAME}"...`);
-      const targetBucket = buckets?.find(bucket => bucket.name === this.BUCKET_NAME);
+      const targetBucket = buckets?.find(b => b.name === this.BUCKET_NAME);
       
       if (!targetBucket) {
         console.error(`❌ Target bucket "${this.BUCKET_NAME}" not found`);
-        console.log('💡 Available bucket names:', buckets?.map(b => `"${b.name}"`).join(', ') || 'none');
         return {
           success: false,
-          error: `Bucket "${this.BUCKET_NAME}" not found. Please create it in your Supabase dashboard.`,
+          error: `Bucket "${this.BUCKET_NAME}" not found. Available buckets: ${buckets?.map(b => b.name).join(', ') || 'none'}`,
           details: { 
             availableBuckets: buckets?.map(b => b.name) || [],
-            targetBucket: this.BUCKET_NAME,
-            searchedFor: this.BUCKET_NAME,
-            foundBuckets: buckets
+            targetBucket: this.BUCKET_NAME
           },
           instructions: this.getBucketSetupInstructions()
         };
       }
       
       console.log('✅ Target bucket found!');
-      console.log('📋 Bucket details:', {
-        name: targetBucket.name,
-        id: targetBucket.id,
-        public: targetBucket.public,
-        created_at: targetBucket.created_at
-      });
+      console.log('📋 Bucket details:', targetBucket);
       
       // Step 4: Test bucket access
-      console.log('\nSTEP 4: Testing bucket file listing...');
-      const { data: files, error: listFilesError } = await supabase.storage
+      console.log('\nSTEP 4: Testing bucket access...');
+      const { data: files, error: listError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 1 });
       
-      if (listFilesError) {
-        console.error('❌ Cannot list files in bucket:', {
-          message: listFilesError.message,
-          statusCode: listFilesError.statusCode,
-          details: listFilesError
-        });
+      if (listError) {
+        console.error('❌ Cannot list files in bucket:', listError);
         return {
           success: false,
-          error: `Bucket access denied: ${listFilesError.message}. This usually means RLS policies are missing or incorrect.`,
+          error: `Bucket access denied: ${listError.message}. Please check bucket RLS policies.`,
           details: { 
             step: 'list_files', 
-            error: listFilesError,
+            error: listError,
             bucketInfo: targetBucket
           },
-          instructions: 'The bucket exists but access is denied. Please add RLS policies for SELECT, INSERT, UPDATE, and DELETE operations. See setup instructions for details.'
+          instructions: 'The bucket exists but access is denied. Please add RLS policies for SELECT, INSERT, UPDATE, and DELETE operations.'
         };
       }
       
@@ -574,20 +499,10 @@ Policy 4 - Allow authenticated deletes:
         .upload(testPath, testBlob);
       
       if (uploadError) {
-        console.error('❌ Upload test failed:', {
-          message: uploadError.message,
-          statusCode: uploadError.statusCode,
-          details: uploadError
-        });
-      } else {
-        console.log('✅ Upload test successful:', uploadData);
-      }
-      
-      if (uploadError) {
-        
+        console.error('❌ Upload test failed:', uploadError);
         return {
           success: false,
-          error: `Upload test failed: ${uploadError.message}`,
+          error: `Upload test failed: ${uploadError.message}. Please check INSERT policy.`,
           details: { 
             step: 'test_upload', 
             error: uploadError,
@@ -597,39 +512,43 @@ Policy 4 - Allow authenticated deletes:
         };
       }
       
+      console.log('✅ Upload test successful:', uploadData);
+      
       // Clean up test file
-      await supabase.storage
+      console.log('🧹 Cleaning up test file...');
+      const { error: deleteError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .remove([testPath]);
       
-      console.log('✅ All storage tests passed!');
+      if (deleteError) {
+        console.warn('⚠️ Test file cleanup failed:', deleteError);
+      } else {
+        console.log('✅ Test file cleaned up');
+      }
+      
+      console.log('\n' + '='.repeat(50));
+      console.log('🎉 STORAGE DIAGNOSTIC COMPLETE - ALL TESTS PASSED!');
+      
       return { 
         success: true,
         details: {
-          ? `Upload failed: ${uploadError.message}. Check INSERT policy.` 
-          testResults: 'All tests passed'
+          testResults: 'All tests passed',
+          bucketInfo: targetBucket,
+          filesCount: files?.length || 0
         }
-        console.log('🧹 Cleaning up test file...');
-        const { error: deleteError } = await supabase.storage
+      };
 
-          } catch (error) {
-        
-        if (deleteError) {
-          console.warn('⚠️ Test file cleanup failed:', deleteError);
-          console.log('✅ Test file cleaned up');
-        }
-
-      console.log('\n' + '='.repeat(50));
-      console.log('🎉 STORAGE DIAGNOSTIC COMPLETE!');
-      
+    } catch (error) {
       console.error('❌ DIAGNOSTIC FAILED:', error);
       return {
-        error: `Storage check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        success: false,
         error: `Storage diagnostic failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: {
+          step: 'unexpected_error',
           error: error
+        },
         instructions: 'Unexpected error occurred. Please check your Supabase configuration, API keys, and network connection.'
       };
     }
-      }
   }
 }
