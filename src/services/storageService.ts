@@ -308,55 +308,40 @@ export class StorageService {
    */
   static async initializeBucket(): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('🔍 Initializing storage bucket...');
+      console.log('🔍 Quick storage bucket check...');
       
       // Check if bucket exists by listing buckets
       const { data: buckets, error: listError } = await supabase.storage.listBuckets();
       
       if (listError) {
-        console.error('❌ Cannot list buckets:', listError);
+        console.error('❌ Cannot list buckets (quick check):', listError);
         return {
           success: false,
-          error: `Cannot access storage: ${listError.message}. Please check your Supabase connection and API keys.`
+          error: `Storage access failed: ${listError.message}`
         };
       }
       
-      console.log('📋 Available buckets:', buckets?.map(b => b.name) || []);
+      console.log('📋 Quick check - available buckets:', buckets?.map(b => b.name) || []);
       
       // Check if our bucket exists
       const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
       
       if (!bucketExists) {
-        console.error(`❌ Bucket '${this.BUCKET_NAME}' not found`);
+        console.error(`❌ Quick check - bucket '${this.BUCKET_NAME}' not found`);
         return {
           success: false,
-          error: `Storage bucket '${this.BUCKET_NAME}' not found. Please create it manually in your Supabase dashboard.`
+          error: `Bucket '${this.BUCKET_NAME}' not found. Available: ${buckets?.map(b => b.name).join(', ') || 'none'}`
         };
       }
       
-      console.log(`✅ Bucket '${this.BUCKET_NAME}' found`);
-      
-      // Test bucket access
-      const { data: files, error: accessError } = await supabase.storage
-        .from(this.BUCKET_NAME)
-        .list('', { limit: 1 });
-      
-      if (accessError) {
-        console.error('❌ Bucket access denied:', accessError);
-        return {
-          success: false,
-          error: `Bucket access denied: ${accessError.message}. Please check your bucket RLS policies.`
-        };
-      }
-      
-      console.log('✅ Bucket access successful');
+      console.log(`✅ Quick check - bucket '${this.BUCKET_NAME}' found`);
       return { success: true };
 
     } catch (error) {
-      console.error('❌ Bucket initialization error:', error);
+      console.error('❌ Quick bucket check error:', error);
       return {
         success: false,
-        error: `Storage setup error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Quick check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }

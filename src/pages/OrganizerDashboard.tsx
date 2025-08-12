@@ -10,6 +10,7 @@ import Marketing from '../components/dashboard/Marketing';
 import Settings from '../components/dashboard/Settings';
 import CreateEventModal from '../components/dashboard/CreateEventModal';
 import StorageDiagnostic from '../components/StorageDiagnostic';
+import StorageDebugger from '../components/StorageDebugger';
 import { supabase } from '../lib/supabase';
 import { OrganizerService } from '../services/organizerService';
 import type { Organizer } from '../lib/supabase';
@@ -143,8 +144,9 @@ const OrganizerDashboard = () => {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             {/* Storage Diagnostic - only show on overview page */}
             {location.pathname === '/dashboard/organizer' && (
-              <div className="mb-6">
+              <div className="mb-6 space-y-6">
                 <StorageDiagnostic />
+                <StorageDebugger />
               </div>
             )}
             
