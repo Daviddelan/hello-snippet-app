@@ -10,6 +10,7 @@ const HeroCarousel = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔍 HeroCarousel: useEffect triggered');
     loadEvents();
   }, []);
 
@@ -24,8 +25,14 @@ const HeroCarousel = () => {
 
   const loadEvents = async () => {
     try {
-      console.log('Loading events for hero carousel...');
+      console.log('🚀 HeroCarousel: Starting to load events...');
+      console.log('🔗 HeroCarousel: Supabase client exists:', !!supabase);
       
+      // Test basic Supabase connection first
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log('👤 HeroCarousel: Current user check:', user?.email || 'No user', userError?.message || 'No error');
+      
+      console.log('📊 HeroCarousel: Attempting to query events table...');
       const { data, error } = await supabase
         .from('events')
         .select(`
@@ -40,22 +47,46 @@ const HeroCarousel = () => {
         .order('created_at', { ascending: false })
         .limit(4);
 
+      console.log('📊 HeroCarousel: Query completed');
+      console.log('📊 HeroCarousel: Data received:', data?.length || 0, 'events');
+      console.log('📊 HeroCarousel: Error received:', error?.code, error?.message);
+
       if (error) {
-        console.warn('Error loading hero events (this is normal if tables don\'t exist yet):', error);
+        console.warn('⚠️ HeroCarousel: Error loading hero events:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        
         // If it's a table doesn't exist error, that's fine - just show fallback
         if (error.code === '42P01') {
-          console.log('Events table doesn\'t exist yet - showing fallback hero');
+          console.log('📋 HeroCarousel: Events table doesn\'t exist yet - showing fallback hero');
+        } else {
+          console.error('❌ HeroCarousel: Unexpected database error:', error);
         }
         setEvents([]);
       } else {
-        console.log('Hero events loaded:', data?.length || 0);
+        console.log('✅ HeroCarousel: Events loaded successfully:', data?.length || 0);
+        if (data && data.length > 0) {
+          console.log('📋 HeroCarousel: First event:', {
+            id: data[0].id,
+            title: data[0].title,
+            organizer: data[0].organizers?.organization_name
+          });
+        }
         setEvents(data || []);
       }
 
     } catch (error) {
-      console.error('Error loading hero events:', error);
+      console.error('❌ HeroCarousel: Unexpected error in loadEvents:', {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack'
+      });
       setEvents([]);
     } finally {
+      console.log('🏁 HeroCarousel: Setting isLoading to false');
       setIsLoading(false);
     }
   };
