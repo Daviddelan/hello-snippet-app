@@ -12,7 +12,7 @@ const Testimonials = () => {
       company: "Malleabite",
       rating: 5,
       text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%! I would strongly recommend this innovative solution for any event organizer out there. You all should hop on to this.",
-      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154128/Screenshot_2025-06-17_at_9.55.20_AM_osi3ve.png"
+      avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150"
     },
     {
       id: 2,
@@ -21,7 +21,7 @@ const Testimonials = () => {
       company: "DNYD Corp",
       rating: 5,
       text: "Managing all the different events that we hold, right from the  corporate events to the non corporate ones have never been easier. The analytics dashboard gives us insights we never had before, helping us improve every event.",
-      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154412/Screenshot_2025-06-17_at_10.00.03_AM_wtzdqq.png"
+      avatar: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=150"
     },
     {
       id: 3,
@@ -30,7 +30,7 @@ const Testimonials = () => {
       company: "Ashesi University",
       rating: 5,
       text: "As the President of Ashesi University startup, we needed an affordable yet professional solution. HelloSnippet exceeded our expectations and helped us host successful networking events.",
-      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154577/Screenshot_2025-06-17_at_10.02.50_AM_mtvlnj.png"
+      avatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150"
     },
     {
       id: 4,
@@ -39,7 +39,7 @@ const Testimonials = () => {
       company: "Hello Grill",
       rating: 5,
       text: "The attendee experience is phenomenal. People love how easy it is to discover and join the different events we hold in addition to our delicious food we serve. Our community has grown tremendously!",
-      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154552/Screenshot_2025-06-17_at_10.02.24_AM_hn5aq6.png"
+      avatar: "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=150"
     }
   ];
 
