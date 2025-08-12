@@ -12,7 +12,7 @@ const Testimonials = () => {
       company: "Malleabite",
       rating: 5,
       text: "HelloSnippet transformed how we organize events. The platform is intuitive, powerful, and our attendee engagement has increased by 300%! I would strongly recommend this innovative solution for any event organizer out there. You all should hop on to this.",
-      avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150"
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154128/Screenshot_2025-06-17_at_9.55.20_AM_osi3ve.png"
     },
     {
       id: 2,
@@ -21,7 +21,7 @@ const Testimonials = () => {
       company: "DNYD Corp",
       rating: 5,
       text: "Managing all the different events that we hold, right from the  corporate events to the non corporate ones have never been easier. The analytics dashboard gives us insights we never had before, helping us improve every event.",
-      avatar: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=150"
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154412/Screenshot_2025-06-17_at_10.00.03_AM_wtzdqq.png"
     },
     {
       id: 3,
