@@ -30,7 +30,7 @@ const Testimonials = () => {
       company: "Ashesi University",
       rating: 5,
       text: "As the President of Ashesi University startup, we needed an affordable yet professional solution. HelloSnippet exceeded our expectations and helped us host successful networking events.",
-      avatar: "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=150"
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154577/Screenshot_2025-06-17_at_10.02.50_AM_mtvlnj.png"
     },
     {
       id: 4,
@@ -39,7 +39,7 @@ const Testimonials = () => {
       company: "Hello Grill",
       rating: 5,
       text: "The attendee experience is phenomenal. People love how easy it is to discover and join the different events we hold in addition to our delicious food we serve. Our community has grown tremendously!",
-      avatar: "https://images.pexels.com/photos/1181406/pexels-photo-1181406.jpeg?auto=compress&cs=tinysrgb&w=150"
+      avatar: "https://res.cloudinary.com/dt3xctihn/image/upload/v1750154552/Screenshot_2025-06-17_at_10.02.24_AM_hn5aq6.png"
     }
   ];
 
