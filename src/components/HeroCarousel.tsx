@@ -9,64 +9,125 @@ const HeroCarousel = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     console.log('🔍 HeroCarousel: Component mounted, starting data load...');
     
-    // Set maximum loading time of 2 seconds
-    const maxLoadingTimer = setTimeout(() => {
-      console.log('⏰ HeroCarousel: Maximum loading time reached, clearing loading state');
-      setIsLoading(false);
-    }, 2000);
-
     const loadEvents = async () => {
       try {
         console.log('🚀 HeroCarousel: Attempting to load events...');
-        
-        // Simple query to events table
-        const { data, error } = await supabase
-          .from('events')
-          .select('*')
-          .eq('is_published', true)
-          .order('created_at', { ascending: false })
-          .limit(4);
+        console.log('🔗 HeroCarousel: Supabase URL:', import.meta.env.VITE_SUPABASE_URL ? 'Present' : 'Missing');
+        console.log('🔑 HeroCarousel: Supabase Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
 
-        console.log('📊 HeroCarousel: Query completed', { 
-          dataLength: data?.length || 0, 
-          errorCode: error?.code,
-          errorMessage: error?.message 
-        });
+        // Test basic Supabase connection first
+        console.log('🧪 HeroCarousel: Testing Supabase connection...');
+        
+        // Try to query the events table with detailed error handling
+        const { data, error, status, statusText } = await supabase
+          .from('events')
+          .select(`
+            id,
+            title,
+            description,
+            start_date,
+            end_date,
+            location,
+            venue_name,
+            capacity,
+            price,
+            currency,
+            category,
+            status,
+            image_url,
+            is_published,
+            created_at,
+            organizers!inner (
+              organization_name,
+              first_name,
+              last_name,
+              is_verified
+            )
+          `)
+          .eq('is_published', true)
+          .eq('organizers.is_verified', true)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        console.log('📊 HeroCarousel: Query completed with status:', status, statusText);
+        console.log('📊 HeroCarousel: Raw response:', { data, error });
 
         if (error) {
-          console.warn('⚠️ HeroCarousel: Database error (this is expected if tables don\'t exist):', error.code, error.message);
+          console.error('❌ HeroCarousel: Database error details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+
+          // Handle specific error cases
+          if (error.code === '42P01') {
+            console.log('📋 HeroCarousel: Events table does not exist - this is expected for new setups');
+            setErrorMessage('Events table not found - please run database migrations');
+          } else if (error.code === 'PGRST116') {
+            console.log('📋 HeroCarousel: No events found in database');
+            setErrorMessage('No published events found');
+          } else {
+            console.log('📋 HeroCarousel: Other database error:', error.message);
+            setErrorMessage(`Database error: ${error.message}`);
+          }
+          
           setHasError(true);
           setEvents([]);
         } else {
           console.log('✅ HeroCarousel: Events loaded successfully:', data?.length || 0);
-          setEvents(data || []);
-          setHasError(false);
+          console.log('📋 HeroCarousel: Event details:', data?.map(e => ({ 
+            id: e.id, 
+            title: e.title, 
+            image: e.image_url,
+            organizer: e.organizers?.organization_name 
+          })));
+          
+          if (data && data.length > 0) {
+            setEvents(data);
+            setHasError(false);
+            setErrorMessage('');
+            console.log('🎪 HeroCarousel: Will show events carousel with', data.length, 'events');
+          } else {
+            console.log('📋 HeroCarousel: No events returned from query');
+            setEvents([]);
+            setErrorMessage('No published events available');
+          }
         }
 
       } catch (error) {
-        console.error('❌ HeroCarousel: Unexpected error:', error);
+        console.error('❌ HeroCarousel: Unexpected error in loadEvents:', {
+          error,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : 'No stack trace'
+        });
         setHasError(true);
         setEvents([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
       } finally {
-        clearTimeout(maxLoadingTimer);
-        console.log('🏁 HeroCarousel: Clearing loading state');
+        console.log('🏁 HeroCarousel: Setting isLoading to false');
         setIsLoading(false);
       }
     };
 
-    loadEvents();
+    // Add a small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      loadEvents();
+    }, 100);
 
     return () => {
-      clearTimeout(maxLoadingTimer);
+      clearTimeout(timer);
     };
   }, []);
 
   useEffect(() => {
     if (events.length > 0) {
+      console.log('⏰ HeroCarousel: Setting up auto-slide timer for', events.length, 'events');
       const timer = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % events.length);
       }, 6000);
@@ -90,9 +151,15 @@ const HeroCarousel = () => {
     navigate(`/event/${eventId}`);
   };
 
-  console.log('🎨 HeroCarousel: Rendering with state:', { isLoading, eventsCount: events.length, hasError });
+  console.log('🎨 HeroCarousel: Rendering with state:', { 
+    isLoading, 
+    eventsCount: events.length, 
+    hasError, 
+    errorMessage,
+    currentSlide 
+  });
 
-  // Loading state - shows for maximum 2 seconds
+  // Loading state
   if (isLoading) {
     console.log('⏳ HeroCarousel: Showing loading state');
     return (
@@ -100,7 +167,7 @@ const HeroCarousel = () => {
         <div className="text-center text-white">
           <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-xl font-medium">Loading amazing events...</p>
-          <p className="text-sm text-white/70 mt-2">This should only take a moment</p>
+          <p className="text-sm text-white/70 mt-2">Connecting to database...</p>
         </div>
       </section>
     );
@@ -108,7 +175,9 @@ const HeroCarousel = () => {
 
   // Show database events if available
   if (events.length > 0) {
-    console.log('🎪 HeroCarousel: Showing events carousel with', events.length, 'events');
+    console.log('🎪 HeroCarousel: Rendering events carousel with', events.length, 'events');
+    const currentEvent = events[currentSlide];
+    
     return (
       <section className="relative h-screen overflow-hidden">
         {/* Slides */}
@@ -126,6 +195,10 @@ const HeroCarousel = () => {
                   src={event.image_url || 'https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=1920'}
                   alt={event.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log('🖼️ HeroCarousel: Image failed to load, using fallback');
+                    e.currentTarget.src = 'https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=1920';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
               </div>
@@ -178,12 +251,14 @@ const HeroCarousel = () => {
                       <div className="flex items-center space-x-3">
                         <div className="relative">
                           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-lg border-2 border-white/30 shadow-lg">
-                            O
+                            {event.organizers?.organization_name?.charAt(0) || 'O'}
                           </div>
                         </div>
                         <div>
                           <p className="text-white/80 text-sm font-medium">Organized by</p>
-                          <p className="text-white font-semibold text-lg">Event Organizer</p>
+                          <p className="text-white font-semibold text-lg">
+                            {event.organizers?.organization_name || 'Event Organizer'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -220,6 +295,7 @@ const HeroCarousel = () => {
           ))}
         </div>
 
+        {/* Navigation Arrows */}
         {events.length > 1 && (
           <>
             <button
@@ -237,6 +313,7 @@ const HeroCarousel = () => {
           </>
         )}
 
+        {/* Slide Indicators */}
         {events.length > 1 && (
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
             {events.map((_, index) => (
@@ -256,8 +333,8 @@ const HeroCarousel = () => {
     );
   }
 
-  // Fallback hero (no events or database issues) - THIS IS WHAT SHOULD SHOW
-  console.log('🎭 HeroCarousel: Showing fallback hero');
+  // Fallback hero (no events or database issues)
+  console.log('🎭 HeroCarousel: Showing fallback hero', { hasError, errorMessage });
   return (
     <section className="relative h-screen overflow-hidden bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
       {/* Background Pattern */}
@@ -294,6 +371,18 @@ const HeroCarousel = () => {
           <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
             Whether you're organizing corporate events, planning memorable experiences, or looking for exciting activities, HelloSnippet connects you with the perfect event ecosystem.
           </p>
+
+          {/* Debug Info (only show if there's an error) */}
+          {hasError && (
+            <div className="mb-6 p-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl max-w-md mx-auto">
+              <p className="text-white/80 text-sm">
+                <strong>Debug Info:</strong> {errorMessage}
+              </p>
+              <p className="text-white/60 text-xs mt-1">
+                Events will appear here once database is properly set up
+              </p>
+            </div>
+          )}
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
