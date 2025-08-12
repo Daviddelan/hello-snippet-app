@@ -42,13 +42,20 @@ const StorageDiagnostic = () => {
       // Step 2: List all buckets
       console.log('Step 2: Listing storage buckets...');
       const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error('❌ Cannot list buckets:', bucketsError);
+      } else {
+        console.log('📋 Raw buckets response:', buckets);
+      }
+      
       diagnosticResults.steps.push({
         step: 2,
         name: 'List Storage Buckets',
         status: bucketsError ? 'error' : 'success',
         message: bucketsError 
           ? `Failed: ${bucketsError.message}` 
-          : `Found ${buckets?.length || 0} buckets`,
+          : `Found ${buckets?.length || 0} buckets: ${buckets?.map(b => b.name).join(', ') || 'none'}`,
         details: { 
           buckets: buckets?.map(b => ({ name: b.name, public: b.public, id: b.id })) || [],
           error: bucketsError 
@@ -58,13 +65,16 @@ const StorageDiagnostic = () => {
       // Step 3: Check target bucket
       console.log('Step 3: Checking event-images bucket...');
       const targetBucket = buckets?.find(b => b.name === 'event-images');
+      console.log('🔍 Looking for bucket "event-images" in:', buckets?.map(b => `"${b.name}"`));
+      console.log('🎯 Target bucket found:', targetBucket);
+      
       diagnosticResults.steps.push({
         step: 3,
         name: 'Target Bucket Check',
         status: targetBucket ? 'success' : 'error',
         message: targetBucket 
-          ? `Bucket found (${targetBucket.public ? 'PUBLIC' : 'PRIVATE'})` 
-          : 'Bucket not found',
+          ? `Bucket "event-images" found (${targetBucket.public ? 'PUBLIC' : 'PRIVATE'}, ID: ${targetBucket.id})` 
+          : `Bucket "event-images" not found. Available: ${buckets?.map(b => `"${b.name}"`).join(', ') || 'none'}`,
         details: { targetBucket }
       });
 
