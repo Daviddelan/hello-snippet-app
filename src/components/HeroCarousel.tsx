@@ -28,25 +28,13 @@ const HeroCarousel = () => {
       console.log('🚀 HeroCarousel: Starting to load events...');
       console.log('🔗 HeroCarousel: Supabase client exists:', !!supabase);
       
-      // Test basic Supabase connection first with timeout
-      console.log('👤 HeroCarousel: Testing auth connection...');
-      const userPromise = supabase.auth.getUser();
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth timeout')), 5000)
-      );
-      
-      try {
-        const { data: { user }, error: userError } = await Promise.race([userPromise, timeoutPromise]) as any;
-        console.log('👤 HeroCarousel: Auth check result:', user?.email || 'No user', userError?.message || 'No error');
-      } catch (authError) {
-        console.warn('⚠️ HeroCarousel: Auth check failed or timed out:', authError);
-        // Continue anyway - auth isn't required for public events
-      }
+      // Skip auth check for public events - not needed
+      console.log('👤 HeroCarousel: Skipping auth check for public events');
       
       console.log('📊 HeroCarousel: Attempting to query events table...');
       
-      // Add timeout to the events query
-      const eventsPromise = supabase
+      // Query events directly without timeout
+      const { data, error } = await supabase
         .from('events')
         .select(`
           *,
@@ -59,12 +47,6 @@ const HeroCarousel = () => {
         .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(4);
-        
-      const eventsTimeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Events query timeout')), 10000)
-      );
-      
-      const { data, error } = await Promise.race([eventsPromise, eventsTimeoutPromise]) as any;
 
       console.log('📊 HeroCarousel: Query completed');
       console.log('📊 HeroCarousel: Data received:', data?.length || 0, 'events');
@@ -82,7 +64,11 @@ const HeroCarousel = () => {
         if (error.code === '42P01') {
           console.log('📋 HeroCarousel: Events table doesn\'t exist yet - showing fallback hero');
         } else {
-          console.error('❌ HeroCarousel: Unexpected database error:', error);
+          console.error('❌ HeroCarousel: Database error:', {
+            code: error.code,
+            message: error.message,
+            details: error.details
+          });
         }
         setEvents([]);
       } else {
