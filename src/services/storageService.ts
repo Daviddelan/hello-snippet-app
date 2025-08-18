@@ -19,7 +19,7 @@ export interface ImageValidationResult {
 
 export class StorageService {
   private static readonly BUCKET_NAME = 'event-images';
-  private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  private static readonly MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
   private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
   /**
@@ -39,7 +39,7 @@ export class StorageService {
       if (file.size > this.MAX_FILE_SIZE) {
         return {
           isValid: false,
-          error: `File size too large. Maximum size: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB`
+          error: `File size too large. Maximum size: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`
         };
       }
 
