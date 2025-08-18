@@ -304,44 +304,34 @@ export class StorageService {
   }
 
   /**
-   * Initialize storage bucket (call this once during setup)
+   * Test storage bucket access without listing buckets
    */
   static async initializeBucket(): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('🔍 Quick storage bucket check...');
+      console.log('🔍 Testing storage bucket access...');
       
-      // Check if bucket exists by listing buckets
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      // Test bucket access by trying to list files (this works with anon key if policies are correct)
+      const { data: files, error: listError } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .list('', { limit: 1 });
       
       if (listError) {
-        console.error('❌ Cannot list buckets (quick check):', listError);
+        console.error('❌ Cannot access bucket:', listError);
         return {
           success: false,
-          error: `Storage access failed: ${listError.message}`
+          error: `Bucket access failed: ${listError.message}`
         };
       }
       
-      console.log('📋 Quick check - available buckets:', buckets?.map(b => b.name) || []);
-      
-      // Check if our bucket exists
-      const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
-      
-      if (!bucketExists) {
-        console.error(`❌ Quick check - bucket '${this.BUCKET_NAME}' not found`);
-        return {
-          success: false,
-          error: `Bucket '${this.BUCKET_NAME}' not found. Available: ${buckets?.map(b => b.name).join(', ') || 'none'}`
-        };
-      }
-      
-      console.log(`✅ Quick check - bucket '${this.BUCKET_NAME}' found`);
+      console.log(`✅ Bucket '${this.BUCKET_NAME}' is accessible`);
+      console.log('📋 Files accessible:', files?.length || 0);
       return { success: true };
 
     } catch (error) {
-      console.error('❌ Quick bucket check error:', error);
+      console.error('❌ Bucket access test error:', error);
       return {
         success: false,
-        error: `Quick check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Bucket access test failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }
@@ -387,7 +377,7 @@ Policy 4 - Allow authenticated deletes:
   }
 
   /**
-   * Alternative bucket initialization with more detailed error handling
+   * Detailed storage diagnostic without using listBuckets()
    */
   static async initializeBucketDetailed(): Promise<{ 
     success: boolean; 
@@ -399,7 +389,7 @@ Policy 4 - Allow authenticated deletes:
       console.log('🔍 DETAILED STORAGE DIAGNOSTIC STARTING...');
       console.log('='.repeat(50));
       
-      // Step 1: Check Supabase connection
+      // Step 1: Check Supabase configuration
       console.log('STEP 1: Testing Supabase connection...');
       console.log('- Supabase URL:', import.meta.env.VITE_SUPABASE_URL ? 'Present' : 'Missing');
       console.log('- Supabase Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'Missing');
@@ -411,71 +401,40 @@ Policy 4 - Allow authenticated deletes:
         console.error('- Auth error:', authError);
       }
       
-      // Step 2: List all buckets
-      console.log('\nSTEP 2: Listing all storage buckets...');
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        console.error('❌ Cannot list buckets:', bucketsError);
-        return {
-          success: false,
-          error: `Cannot access storage: ${bucketsError.message}. Please check your Supabase API keys and ensure storage is enabled.`,
-          details: { step: 'list_buckets', error: bucketsError },
-          instructions: 'Please check your Supabase API keys, ensure you\'re connected to Supabase, and verify storage is enabled in your project.'
-        };
-      }
-      
-      console.log('✅ Successfully listed buckets');
-      console.log('📋 Available buckets:');
-      buckets?.forEach((bucket, index) => {
-        console.log(`  ${index + 1}. "${bucket.name}" (${bucket.public ? 'PUBLIC' : 'PRIVATE'}, ID: ${bucket.id})`);
-      });
-      
-      // Step 3: Check target bucket
-      console.log(`\nSTEP 3: Looking for target bucket "${this.BUCKET_NAME}"...`);
-      const targetBucket = buckets?.find(b => b.name === this.BUCKET_NAME);
-      
-      if (!targetBucket) {
-        console.error(`❌ Target bucket "${this.BUCKET_NAME}" not found`);
-        return {
-          success: false,
-          error: `Bucket "${this.BUCKET_NAME}" not found. Available buckets: ${buckets?.map(b => b.name).join(', ') || 'none'}`,
-          details: { 
-            availableBuckets: buckets?.map(b => b.name) || [],
-            targetBucket: this.BUCKET_NAME
-          },
-          instructions: this.getBucketSetupInstructions()
-        };
-      }
-      
-      console.log('✅ Target bucket found!');
-      console.log('📋 Bucket details:', targetBucket);
-      
-      // Step 4: Test bucket access
-      console.log('\nSTEP 4: Testing bucket access...');
-      const { data: files, error: listError } = await supabase.storage
+      // Step 2: Test bucket access directly
+      console.log(`\nSTEP 2: Testing direct access to "${this.BUCKET_NAME}" bucket...`);
+      const { data: files, error: bucketsError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 1 });
       
-      if (listError) {
-        console.error('❌ Cannot list files in bucket:', listError);
+      if (bucketsError) {
+        console.error('❌ Cannot access bucket:', bucketsError);
+        
+        // Provide specific error messages based on error type
+        let errorMessage = `Cannot access bucket "${this.BUCKET_NAME}": ${bucketsError.message}`;
+        let instructions = this.getBucketSetupInstructions();
+        
+        if (bucketsError.message.includes('not found') || bucketsError.message.includes('does not exist')) {
+          errorMessage = `Bucket "${this.BUCKET_NAME}" does not exist or is not accessible.`;
+          instructions = `Please create the "${this.BUCKET_NAME}" bucket in your Supabase dashboard:\n\n` + instructions;
+        } else if (bucketsError.message.includes('RLS') || bucketsError.message.includes('policy')) {
+          errorMessage = `Bucket "${this.BUCKET_NAME}" exists but RLS policies are blocking access.`;
+          instructions = `Please check your RLS policies for the storage.objects table:\n\n` + instructions;
+        }
+        
         return {
           success: false,
-          error: `Bucket access denied: ${listError.message}. Please check bucket RLS policies.`,
-          details: { 
-            step: 'list_files', 
-            error: listError,
-            bucketInfo: targetBucket
-          },
-          instructions: 'The bucket exists but access is denied. Please add RLS policies for SELECT, INSERT, UPDATE, and DELETE operations.'
+          error: errorMessage,
+          details: { step: 'bucket_access', error: bucketsError },
+          instructions: instructions
         };
       }
       
-      console.log('✅ Bucket file listing successful');
-      console.log('📋 Files in bucket:', files?.length || 0);
+      console.log('✅ Successfully accessed bucket');
+      console.log('📋 Files accessible:', files?.length || 0);
       
-      // Step 5: Test upload permissions
-      console.log('\nSTEP 5: Testing upload permissions...');
+      // Step 3: Test upload permissions (only if authenticated)
+      console.log('\nSTEP 3: Testing upload permissions...');
       const testBlob = new Blob(['test-upload'], { type: 'text/plain' });
       const testPath = `test_${Date.now()}.txt`;
       
@@ -485,22 +444,34 @@ Policy 4 - Allow authenticated deletes:
       
       if (uploadError) {
         console.error('❌ Upload test failed:', uploadError);
+        
+        let errorMessage = `Upload test failed: ${uploadError.message}`;
+        let instructions = this.getBucketSetupInstructions();
+        
+        if (!user) {
+          errorMessage = 'Upload test failed: User not authenticated. Please sign in to test uploads.';
+          instructions = 'Please sign in to test upload functionality.';
+        } else if (uploadError.message.includes('RLS') || uploadError.message.includes('policy')) {
+          errorMessage = `Upload blocked by RLS policies: ${uploadError.message}`;
+          instructions = 'Please check your INSERT policy for storage.objects table.';
+        }
+        
         return {
           success: false,
-          error: `Upload test failed: ${uploadError.message}. Please check INSERT policy.`,
+          error: errorMessage,
           details: { 
             step: 'test_upload', 
             error: uploadError,
-            bucketInfo: targetBucket
+            authenticated: !!user
           },
-          instructions: 'Bucket exists but uploads are not allowed. Please check upload policies.'
+          instructions: instructions
         };
       }
       
       console.log('✅ Upload test successful:', uploadData);
       
       // Clean up test file
-      console.log('🧹 Cleaning up test file...');
+      console.log('\nSTEP 4: Cleaning up test file...');
       const { error: deleteError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .remove([testPath]);
@@ -518,7 +489,8 @@ Policy 4 - Allow authenticated deletes:
         success: true,
         details: {
           testResults: 'All tests passed',
-          bucketInfo: targetBucket,
+          bucketName: this.BUCKET_NAME,
+          authenticated: !!user,
           filesCount: files?.length || 0
         }
       };
