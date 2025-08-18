@@ -19,7 +19,7 @@ export interface ImageValidationResult {
 
 export class StorageService {
   private static readonly BUCKET_NAME = 'event-images';
-  private static readonly MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
   /**
