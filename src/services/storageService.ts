@@ -341,38 +341,47 @@ export class StorageService {
    */
   static getBucketSetupInstructions(): string {
     return `
-To set up the storage bucket manually in your Supabase dashboard:
+STORAGE SETUP INSTRUCTIONS:
+
+If you're seeing bucket access errors, please verify these steps:
 
 1. Go to Storage in your Supabase dashboard
-2. Click "Create a new bucket"
-3. Name it: ${this.BUCKET_NAME}
-4. Make it PUBLIC
-5. Add these RLS policies:
+2. Ensure bucket "${this.BUCKET_NAME}" exists and is PUBLIC
+3. Go to SQL Editor and run these RLS policies:
 
-Policy 1 - Allow public read access:
-- Policy name: "Public read access"
-- Allowed operation: SELECT
-- Target roles: public
-- USING expression: true
+-- Enable RLS on storage.objects (if not already enabled)
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
-Policy 2 - Allow authenticated uploads:
-- Policy name: "Authenticated uploads"
-- Allowed operation: INSERT
-- Target roles: authenticated
-- WITH CHECK expression: true
+-- Allow public read access
+CREATE POLICY "Public read access for ${this.BUCKET_NAME}"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = '${this.BUCKET_NAME}');
 
-Policy 3 - Allow authenticated updates:
-- Policy name: "Authenticated updates"  
-- Allowed operation: UPDATE
-- Target roles: authenticated
-- USING expression: true
-- WITH CHECK expression: true
+-- Allow authenticated uploads
+CREATE POLICY "Authenticated uploads for ${this.BUCKET_NAME}"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = '${this.BUCKET_NAME}');
 
-Policy 4 - Allow authenticated deletes:
-- Policy name: "Authenticated deletes"
-- Allowed operation: DELETE
-- Target roles: authenticated
-- USING expression: true
+-- Allow authenticated updates
+CREATE POLICY "Authenticated updates for ${this.BUCKET_NAME}"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = '${this.BUCKET_NAME}')
+WITH CHECK (bucket_id = '${this.BUCKET_NAME}');
+
+-- Allow authenticated deletes
+CREATE POLICY "Authenticated deletes for ${this.BUCKET_NAME}"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = '${this.BUCKET_NAME}');
+
+4. Verify your environment variables:
+   - VITE_SUPABASE_URL should point to your project
+   - VITE_SUPABASE_ANON_KEY should be the anon/public key (not service role)
+
+5. Test the setup by running the storage diagnostic in the app.
 `;
   }
 
