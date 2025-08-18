@@ -495,7 +495,6 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                       <li>• Automatically cropped to 16:9 aspect ratio</li>
                       <li>• Supported formats: JPG, PNG, GIF, WebP</li>
                       <li>• Maximum file size: 10MB</li>
-                      <li>• Minimum dimensions: 400x300 pixels</li>
                     </ul>
                   </div>
 
