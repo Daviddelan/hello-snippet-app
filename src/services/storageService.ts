@@ -21,10 +21,6 @@ export class StorageService {
   private static readonly BUCKET_NAME = 'event-images';
   private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  private static readonly MIN_WIDTH = 400;
-  private static readonly MIN_HEIGHT = 300;
-  private static readonly MAX_WIDTH = 4000;
-  private static readonly MAX_HEIGHT = 4000;
 
   /**
    * Validate image file before upload
@@ -47,22 +43,8 @@ export class StorageService {
         };
       }
 
-      // Check image dimensions
+      // Get image dimensions for metadata (but don't restrict them)
       const dimensions = await this.getImageDimensions(file);
-      
-      if (dimensions.width < this.MIN_WIDTH || dimensions.height < this.MIN_HEIGHT) {
-        return {
-          isValid: false,
-          error: `Image too small. Minimum dimensions: ${this.MIN_WIDTH}x${this.MIN_HEIGHT}px`
-        };
-      }
-
-      if (dimensions.width > this.MAX_WIDTH || dimensions.height > this.MAX_HEIGHT) {
-        return {
-          isValid: false,
-          error: `Image too large. Maximum dimensions: ${this.MAX_WIDTH}x${this.MAX_HEIGHT}px`
-        };
-      }
 
       return {
         isValid: true,
