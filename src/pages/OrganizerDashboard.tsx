@@ -28,6 +28,8 @@ const OrganizerDashboard = () => {
       try {
         setError(null);
         console.log('Loading organizer data...');
+        console.log(import.meta.env.VITE_SUPABASE_URL)
+        console.log(import.meta.env.VITE_SUPABASE_ANON_KEY)
         
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
