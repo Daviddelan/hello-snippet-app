@@ -685,6 +685,16 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
           )}
         </div>
       </div>
+
+      {/* Avatar Image Cropper Modal */}
+      {showImageCropper && organizer && (
+        <ImageCropper
+          onImageCropped={handleAvatarCropped}
+          onClose={() => setShowImageCropper(false)}
+          aspectRatio={1} // Square aspect ratio for avatars
+          organizerId={organizer.id}
+        />
+      )}
     </div>
   );
 };

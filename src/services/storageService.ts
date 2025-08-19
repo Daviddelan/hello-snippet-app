@@ -206,7 +206,9 @@ export class StorageService {
       }
 
       // Generate unique filename
-      const fileName = `${organizerId}/${eventId || 'temp'}_cropped_${Date.now()}.jpg`;
+      const fileName = imageType === 'avatar' 
+        ? `${organizerId}/avatar_${Date.now()}.jpg`
+        : `${organizerId}/${eventId || 'temp'}_cropped_${Date.now()}.jpg`;
       console.log('📁 Uploading to path:', fileName);
 
       // Upload to Supabase storage

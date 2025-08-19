@@ -442,6 +442,14 @@ const HeroCarousel = () => {
                         <span className="text-white/90 text-sm font-medium">Verified Organizer</span>
                       </div>
                     )}
+                    {event.organizers?.bio && (
+                      <p className="text-white/80 text-sm mt-2 max-w-md">
+                        {event.organizers.bio.length > 100 
+                          ? `${event.organizers.bio.substring(0, 100)}...` 
+                          : event.organizers.bio
+                        }
+                      </p>
+                    )}
                   </div>
                 </div>
 
