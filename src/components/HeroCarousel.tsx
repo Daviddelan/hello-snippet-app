@@ -17,99 +17,110 @@ const HeroCarousel = () => {
         console.log('🔍 HeroCarousel: Starting comprehensive event loading...');
         setIsLoading(true);
         
-        // Step 1: Test direct database access
-        console.log('Step 1: Testing direct database access...');
+        // Test multiple query approaches to identify the issue
+        console.log('🔍 Testing multiple query approaches...');
+        
+        // Query 1: Direct simple query
         const { data: directData, error: directError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('is_published', true)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        console.log('📊 Query 1 - Simple events:', { 
+          success: !directError, 
+          count: directData?.length || 0, 
+          error: directError?.message,
+          events: directData?.map(e => ({ id: e.id, title: e.title, status: e.status, published: e.is_published }))
+        });
+
+        // Query 2: With organizer join
+        const { data: joinData, error: joinError } = await supabase
           .from('events')
           .select(`
             *,
             organizers (
+              id,
               organization_name,
               first_name,
               last_name,
-              is_verified
+              is_verified,
+              location
             )
           `)
           .eq('is_published', true)
           .eq('status', 'published')
           .order('created_at', { ascending: false })
-          .limit(10);
+          .limit(5);
 
-        console.log('📊 Direct query result:', { data: directData, error: directError });
-
-        // Step 2: Test without organizer join
-        console.log('Step 2: Testing without organizer join...');
-        const { data: simpleData, error: simpleError } = await supabase
-          .from('events')
-          .select('*')
-          .eq('is_published', true)
-          .eq('status', 'published')
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        console.log('📊 Simple query result:', { data: simpleData, error: simpleError });
-
-        // Step 3: Test just published flag
-        console.log('Step 3: Testing just published flag...');
-        const { data: publishedData, error: publishedError } = await supabase
-          .from('events')
-          .select('*')
-          .eq('is_published', true)
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        console.log('📊 Published only query result:', { data: publishedData, error: publishedError });
-
-        // Step 4: Test with service
-        const result = await EventService.getPublishedEvents(10, true);
-        console.log('📊 Service result:', result);
-        
-        setDebugInfo({
-          success: result.success,
-          message: result.message,
-          eventCount: result.events?.length || 0,
-          events: result.events?.map(e => ({
-            id: e.id,
-            title: e.title,
-            status: e.status,
-            is_published: e.is_published,
-            organizer: e.organizers?.organization_name
-          })) || []
+        console.log('📊 Query 2 - With organizers:', { 
+          success: !joinError, 
+          count: joinData?.length || 0, 
+          error: joinError?.message,
+          events: joinData?.map(e => ({ 
+            id: e.id, 
+            title: e.title, 
+            organizer: e.organizers?.organization_name || 'No organizer'
+          }))
         });
 
-        if (result.success && result.events && result.events.length > 0) {
-          setEvents(result.events);
-          console.log('🎯 Final events set:', result.events.length);
+        // Query 3: Just published flag (no status filter)
+        const { data: publishedOnlyData, error: publishedOnlyError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('is_published', true)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        console.log('📊 Query 3 - Published only:', { 
+          success: !publishedOnlyError, 
+          count: publishedOnlyData?.length || 0, 
+          error: publishedOnlyError?.message 
+        });
+
+        // Query 4: Use the service
+        const result = await EventService.getPublishedEvents(10, true);
+        console.log('📊 Query 4 - Service result:', { 
+          success: result.success, 
+          count: result.events?.length || 0, 
+          error: result.error 
+        });
+        
+        // Use the data that worked
+        let eventsToUse = [];
+        let debugInfo = {};
+        
+        if (joinData && joinData.length > 0) {
+          eventsToUse = joinData;
+          console.log('✅ Using join query data');
+          debugInfo = { source: 'join_query', count: joinData.length, success: true };
+        } else if (directData && directData.length > 0) {
+          eventsToUse = directData;
+          console.log('✅ Using direct query data');
+          debugInfo = { source: 'direct_query', count: directData.length, success: true };
+        } else if (publishedOnlyData && publishedOnlyData.length > 0) {
+          eventsToUse = publishedOnlyData;
+          console.log('✅ Using published-only query data');
+          debugInfo = { source: 'published_only', count: publishedOnlyData.length, success: true };
+        } else if (result.success && result.events && result.events.length > 0) {
+          eventsToUse = result.events;
+          console.log('✅ Using service data');
+          debugInfo = { source: 'service', count: result.events.length, success: true };
         } else {
-          setDebugInfo({
-            directQuery: { data: directData?.length || 0, error: directError?.message },
-            simpleQuery: { data: simpleData?.length || 0, error: simpleError?.message },
-            publishedQuery: { data: publishedData?.length || 0, error: publishedError?.message },
+          console.log('❌ No events found in any query');
+          debugInfo = {
+            directQuery: { count: directData?.length || 0, error: directError?.message },
+            joinQuery: { count: joinData?.length || 0, error: joinError?.message },
+            publishedQuery: { count: publishedOnlyData?.length || 0, error: publishedOnlyError?.message },
             serviceResult: { success: result.success, count: result.events?.length || 0, error: result.error }
-          });
-
-          // Use the data that worked
-          let eventsToUse = [];
-          if (directData && directData.length > 0) {
-            eventsToUse = directData;
-            console.log('✅ Using direct query data');
-          } else if (simpleData && simpleData.length > 0) {
-            eventsToUse = simpleData;
-            console.log('✅ Using simple query data');
-          } else if (publishedData && publishedData.length > 0) {
-            eventsToUse = publishedData;
-            console.log('✅ Using published query data');
-          } else if (result.success && result.events && result.events.length > 0) {
-            eventsToUse = result.events;
-            console.log('✅ Using service data');
-          } else {
-            console.log('📭 HeroCarousel: No published events found');
-            console.log('📭 No events found in any query');
-          }
-
-          setEvents(eventsToUse);
-          console.log('🎯 Final events set:', eventsToUse.length);
+          };
         }
+        
+        setEvents(eventsToUse);
+        setDebugInfo(debugInfo);
+        console.log('🎯 Final events set:', eventsToUse.length);
 
       } catch (error) {
         console.error('❌ HeroCarousel: Error loading events:', error);
@@ -387,17 +398,22 @@ const HeroCarousel = () => {
                 </div>
 
                 {/* Organizer Info */}
-                <div className="flex items-center justify-center space-x-3 mb-8">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-lg border-2 border-white/30 shadow-lg">
+                <div className="flex items-center justify-center space-x-4 mb-8">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-xl border-3 border-white/40 shadow-xl">
                     {(event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase()}
                   </div>
                   <div className="text-left">
-                    <p className="text-white/80 text-sm font-medium">Organized by</p>
-                    <p className="text-white font-semibold text-lg">
+                    <p className="text-white/90 text-sm font-medium">Organized by</p>
+                    <p className="text-white font-bold text-xl drop-shadow-lg">
                       {event.organizers?.organization_name || 
                        `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
                        'Event Organizer'}
                     </p>
+                    {event.organizers?.location && (
+                      <p className="text-white/80 text-sm">
+                        📍 {event.organizers.location}
+                      </p>
+                    )}
                   </div>
                 </div>
 

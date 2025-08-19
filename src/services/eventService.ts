@@ -49,13 +49,18 @@ export class EventService {
         .select(includeOrganizerInfo ? `
           *,
           organizers (
+            id,
             organization_name,
             first_name,
             last_name,
-            is_verified
+            is_verified,
+            email,
+            phone,
+            location
           )
         ` : '*')
         .eq('is_published', true)
+        .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
