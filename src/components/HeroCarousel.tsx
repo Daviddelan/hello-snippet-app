@@ -117,6 +117,8 @@ const HeroCarousel = () => {
           events: result.events?.map(e => ({
             id: e.id,
             title: e.title,
+          }))
+        });
 
       } catch (error) {
         console.error('❌ HeroCarousel: Error loading events:', error);
