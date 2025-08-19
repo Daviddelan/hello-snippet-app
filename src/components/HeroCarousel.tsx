@@ -10,7 +10,6 @@ const HeroCarousel = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [debugInfo, setDebugInfo] = useState<any>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const loadEvents = async () => {
@@ -79,40 +78,41 @@ const HeroCarousel = () => {
         });
 
         if (result.success && result.events && result.events.length > 0) {
-        setDebugInfo({
-          directQuery: { data: directData?.length || 0, error: directError?.message },
-          simpleQuery: { data: simpleData?.length || 0, error: simpleError?.message },
-          publishedQuery: { data: publishedData?.length || 0, error: publishedError?.message },
-          serviceResult: { success: result.success, count: result.events?.length || 0, error: result.error }
-        });
-
-        // Use the data that worked
-        let eventsToUse = [];
-        if (directData && directData.length > 0) {
-          eventsToUse = directData;
-          console.log('✅ Using direct query data');
-        } else if (simpleData && simpleData.length > 0) {
-          eventsToUse = simpleData;
-          console.log('✅ Using simple query data');
-        } else if (publishedData && publishedData.length > 0) {
-          eventsToUse = publishedData;
-          console.log('✅ Using published query data');
-        } else if (result.success && result.events && result.events.length > 0) {
-          eventsToUse = result.events;
-          console.log('✅ Using service data');
+          setEvents(result.events);
+          console.log('🎯 Final events set:', result.events.length);
         } else {
-          console.log('📭 HeroCarousel: No published events found');
-          console.log('📭 No events found in any query');
-        }
+          setDebugInfo({
+            directQuery: { data: directData?.length || 0, error: directError?.message },
+            simpleQuery: { data: simpleData?.length || 0, error: simpleError?.message },
+            publishedQuery: { data: publishedData?.length || 0, error: publishedError?.message },
+            serviceResult: { success: result.success, count: result.events?.length || 0, error: result.error }
+          });
 
-        setEvents(eventsToUse);
-        console.log('🎯 Final events set:', eventsToUse.length);
+          // Use the data that worked
+          let eventsToUse = [];
+          if (directData && directData.length > 0) {
+            eventsToUse = directData;
+            console.log('✅ Using direct query data');
+          } else if (simpleData && simpleData.length > 0) {
+            eventsToUse = simpleData;
+            console.log('✅ Using simple query data');
+          } else if (publishedData && publishedData.length > 0) {
+            eventsToUse = publishedData;
+            console.log('✅ Using published query data');
+          } else if (result.success && result.events && result.events.length > 0) {
+            eventsToUse = result.events;
+            console.log('✅ Using service data');
+          } else {
+            console.log('📭 HeroCarousel: No published events found');
+            console.log('📭 No events found in any query');
+          }
+
+          setEvents(eventsToUse);
+          console.log('🎯 Final events set:', eventsToUse.length);
+        }
 
       } catch (error) {
         console.error('❌ HeroCarousel: Error loading events:', error);
-        setDebugInfo({
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
         setDebugInfo({
           error: error instanceof Error ? error.message : 'Unknown error',
           success: false
