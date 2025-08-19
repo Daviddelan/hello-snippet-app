@@ -47,8 +47,19 @@ const HeroCarousel = () => {
           console.log('📊 Organizer query result:', { 
             count: organizerData?.length || 0, 
             error: organizerError,
-            organizers: organizerData
+            organizers: organizerData,
+            organizerIds: organizerIds
           });
+          
+          // If organizer query failed, let's check why
+          if (organizerError) {
+            console.error('❌ Organizer query failed:', {
+              code: organizerError.code,
+              message: organizerError.message,
+              details: organizerError.details,
+              hint: organizerError.hint
+            });
+          }
           
           // Step 3: Test joined query
           console.log('Step 3: Testing joined query...');
