@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, ArrowRight, Calendar, MapPin, Users, DollarSign } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Calendar, MapPin, Users, DollarSign, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EventService } from '../services/eventService';
 
@@ -8,24 +8,46 @@ const HeroCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        console.log('🔍 HeroCarousel: Loading published events...');
+        console.log('🔍 HeroCarousel: Starting to load events...');
+        setIsLoading(true);
         
-        const result = await EventService.getPublishedEvents(5);
+        const result = await EventService.getPublishedEvents(10, true);
+        console.log('📊 HeroCarousel: Service result:', result);
         
-        if (result.success && result.events.length > 0) {
-          console.log('✅ HeroCarousel: Loaded', result.events.length, 'published events');
+        setDebugInfo({
+          success: result.success,
+          message: result.message,
+          eventCount: result.events?.length || 0,
+          events: result.events?.map(e => ({
+            id: e.id,
+            title: e.title,
+            status: e.status,
+            is_published: e.is_published,
+            organizer: e.organizers?.organization_name
+          })) || []
+        });
+
+        if (result.success && result.events && result.events.length > 0) {
+          console.log('✅ HeroCarousel: Found', result.events.length, 'published events');
+          console.log('📋 Events:', result.events.map(e => `"${e.title}" (${e.status}, published: ${e.is_published})`));
           setEvents(result.events);
         } else {
-          console.log('📋 HeroCarousel: No published events found');
+          console.log('📭 HeroCarousel: No published events found');
+          console.log('🔍 Debug info:', result);
           setEvents([]);
         }
 
       } catch (error) {
         console.error('❌ HeroCarousel: Error loading events:', error);
+        setDebugInfo({
+          error: error instanceof Error ? error.message : 'Unknown error',
+          success: false
+        });
         setEvents([]);
       } finally {
         setIsLoading(false);
@@ -56,7 +78,11 @@ const HeroCarousel = () => {
     }
   };
 
-  const handleMoreInfo = (eventId: string) => {
+  const handleViewEvent = (eventId: string) => {
+    navigate(`/event/${eventId}`);
+  };
+
+  const handleRegisterNow = (eventId: string) => {
     navigate(`/event/${eventId}`);
   };
 
@@ -72,249 +98,280 @@ const HeroCarousel = () => {
     );
   }
 
-  // Show database events if available
-  if (events.length > 0) {
-    const currentEvent = events[currentSlide];
-    
+  // Debug mode - show what we found
+  if (events.length === 0) {
     return (
-      <section className="relative h-screen overflow-hidden">
-        {/* Slides */}
-        <div className="relative h-full">
-          {events.map((event, index) => (
-            <div
-              key={event.id}
-              className={`absolute inset-0 transition-opacity duration-1000 ${
-                index === currentSlide ? 'opacity-100' : 'opacity-0'
-              }`}
-            >
-              {/* Background Image */}
-              <div className="absolute inset-0">
-                <img
-                  src={event.image_url || 'https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080'}
-                  alt={event.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-              </div>
-
-              {/* Event Content Overlay */}
-              <div className="absolute inset-0 flex flex-col justify-between p-6 sm:p-8 lg:p-12">
-                <div className="flex-1 flex items-center">
-                  <div className="max-w-4xl">
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
-                      {event.title}
-                    </h1>
-                    
-                    {event.description && (
-                      <p className="text-lg sm:text-xl text-white/90 mb-6 max-w-2xl leading-relaxed drop-shadow-lg">
-                        {event.description.length > 200 
-                          ? `${event.description.substring(0, 200)}...` 
-                          : event.description
-                        }
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap gap-4 mb-8">
-                      <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-2 text-white">
-                        <Calendar className="w-5 h-5" />
-                        <span className="font-medium">
-                          {new Date(event.start_date).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-2 text-white">
-                        <MapPin className="w-5 h-5" />
-                        <span className="font-medium">
-                          {event.venue_name ? `${event.venue_name}, ${event.location}` : event.location}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-2 text-white">
-                        <Users className="w-5 h-5" />
-                        <span className="font-medium">{event.capacity.toLocaleString()} capacity</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-end justify-between gap-6">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
-                    <div className="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                      <div className="flex items-center space-x-3">
-                        <div className="relative">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-lg border-2 border-white/30 shadow-lg">
-                            {event.organizers?.organization_name?.charAt(0) || 'O'}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-white/80 text-sm font-medium">Organized by</p>
-                          <p className="text-white font-semibold text-lg">
-                            {event.organizers?.organization_name || `${event.organizers?.first_name} ${event.organizers?.last_name}` || 'Event Organizer'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="group bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105">
-                      <div className="text-center">
-                        <p className="text-white/80 text-sm font-medium mb-1">Price</p>
-                        <p className="text-white font-bold text-2xl flex items-center justify-center">
-                          {event.price === 0 ? (
-                            <span className="text-green-300">FREE</span>
-                          ) : (
-                            <>
-                              <DollarSign className="w-5 h-5 mr-1" />
-                              {event.price.toLocaleString()}
-                            </>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => handleMoreInfo(event.id)}
-                    className="group relative bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 border border-white/20 backdrop-blur-sm"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <span className="relative z-10">View Event</span>
-                    <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700 rounded-2xl"></div>
-                  </button>
+      <section className="relative h-screen overflow-hidden bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-4xl mx-auto text-white">
+            {/* Logo */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-white rounded-3xl blur-xl opacity-30 group-hover:opacity-40 transition-opacity duration-300"></div>
+                <div className="relative bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 group-hover:scale-105 transition-all duration-300">
+                  <img 
+                    src="/hellosnippet_transparent.png" 
+                    alt="HelloSnippet" 
+                    className="h-16 sm:h-20 w-auto"
+                  />
                 </div>
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Navigation Arrows */}
-        {events.length > 1 && (
-          <>
-            <button
-              onClick={prevSlide}
-              className="absolute left-4 lg:left-8 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-xl hover:bg-white/20 text-white p-4 rounded-full transition-all duration-200 hover:scale-110 border border-white/20 shadow-2xl group"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-4 lg:right-8 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-xl hover:bg-white/20 text-white p-4 rounded-full transition-all duration-200 hover:scale-110 border border-white/20 shadow-2xl group"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </>
-        )}
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+              Discover Amazing
+              <span className="block bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                Events Near You
+              </span>
+            </h2>
 
-        {/* Slide Indicators */}
-        {events.length > 1 && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
-            {events.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`h-3 rounded-full transition-all duration-300 border border-white/30 backdrop-blur-sm ${
-                  index === currentSlide
-                    ? 'bg-white w-8 shadow-lg shadow-white/25'
-                    : 'bg-white/50 hover:bg-white/70 w-3'
-                }`}
-              />
-            ))}
+            <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+              Whether you're organizing corporate events, planning memorable experiences, or looking for exciting activities, HelloSnippet connects you with the perfect event ecosystem.
+            </p>
+
+            {/* Debug Information */}
+            <div className="mb-6 p-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl max-w-2xl mx-auto">
+              <p className="text-white/90 text-sm font-medium mb-2">
+                🎪 Ready for Amazing Events!
+              </p>
+              <p className="text-white/70 text-xs mb-3">
+                Published events will appear here automatically. Create and publish your first event to see it featured!
+              </p>
+              
+              {/* Debug Info */}
+              {debugInfo && (
+                <div className="text-left bg-black/20 rounded-lg p-3 mt-3">
+                  <p className="text-white/80 text-xs font-mono">
+                    <strong>Debug Info:</strong><br/>
+                    Success: {debugInfo.success ? 'Yes' : 'No'}<br/>
+                    Events Found: {debugInfo.eventCount}<br/>
+                    {debugInfo.message && `Message: ${debugInfo.message}`}<br/>
+                    {debugInfo.error && `Error: ${debugInfo.error}`}
+                  </p>
+                  {debugInfo.events && debugInfo.events.length > 0 && (
+                    <details className="mt-2">
+                      <summary className="text-white/70 text-xs cursor-pointer">View Events</summary>
+                      <pre className="text-white/60 text-xs mt-1 overflow-auto max-h-20">
+                        {JSON.stringify(debugInfo.events, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <button 
+                onClick={() => navigate('/signup/organizer')}
+                className="group bg-white text-primary-500 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-gray-50 transition-all duration-300 flex items-center space-x-2 shadow-2xl hover:shadow-3xl transform hover:-translate-y-1"
+              >
+                <Calendar className="w-5 h-5" />
+                <span>Create Event</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              
+              <button 
+                onClick={() => navigate('/discover')}
+                className="group bg-transparent border-2 border-white text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white hover:text-primary-500 transition-all duration-300 flex items-center space-x-2"
+              >
+                <Users className="w-5 h-5" />
+                <span>Browse Events</span>
+              </button>
+            </div>
           </div>
-        )}
+        </div>
       </section>
     );
   }
 
-  // Fallback hero (no events or database issues)
+  // Show dynamic events carousel
+  const currentEvent = events[currentSlide];
+  
   return (
-    <section className="relative h-screen overflow-hidden bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-white/20"></div>
-        <div className="absolute top-40 right-20 w-20 h-20 rounded-full bg-white/10"></div>
-        <div className="absolute bottom-32 left-1/4 w-16 h-16 rounded-full bg-white/15"></div>
-      </div>
+    <section className="relative h-screen overflow-hidden">
+      {/* Slides */}
+      <div className="relative h-full">
+        {events.map((event, index) => (
+          <div
+            key={event.id}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            {/* Background Image */}
+            <div className="absolute inset-0">
+              <img
+                src={event.image_url || 'https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080'}
+                alt={event.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log('Image failed to load:', event.image_url);
+                  e.currentTarget.src = 'https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080';
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+            </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-4xl mx-auto">
-          {/* Logo */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-white rounded-3xl blur-xl opacity-30 group-hover:opacity-40 transition-opacity duration-300"></div>
-              <div className="relative bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 group-hover:scale-105 transition-all duration-300">
-                <img 
-                  src="/hellosnippet_transparent.png" 
-                  alt="HelloSnippet" 
-                  className="h-16 sm:h-20 w-auto"
-                />
+            {/* Event Content Overlay */}
+            <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-6 sm:p-8 lg:p-12">
+              <div className="max-w-5xl mx-auto">
+                {/* Event Category Badge */}
+                <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-4 py-2 text-white mb-6">
+                  <Calendar className="w-4 h-4" />
+                  <span className="text-sm font-medium">{event.category}</span>
+                </div>
+
+                {/* Event Title */}
+                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-2xl">
+                  {event.title}
+                </h1>
+                
+                {/* Event Description */}
+                {event.description && (
+                  <p className="text-lg sm:text-xl lg:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
+                    {event.description.length > 200 
+                      ? `${event.description.substring(0, 200)}...` 
+                      : event.description
+                    }
+                  </p>
+                )}
+
+                {/* Event Details */}
+                <div className="flex flex-wrap justify-center gap-4 mb-8">
+                  <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-white">
+                    <Calendar className="w-5 h-5" />
+                    <div className="text-left">
+                      <p className="text-sm font-medium">
+                        {new Date(event.start_date).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
+                      <p className="text-xs text-white/80">
+                        {new Date(event.start_date).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })} - {new Date(event.end_date).toLocaleTimeString('en-US', {
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-white">
+                    <MapPin className="w-5 h-5" />
+                    <div className="text-left">
+                      <p className="text-sm font-medium">
+                        {event.venue_name || event.location}
+                      </p>
+                      {event.venue_name && (
+                        <p className="text-xs text-white/80">{event.location}</p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-white">
+                    <Users className="w-5 h-5" />
+                    <div className="text-left">
+                      <p className="text-sm font-medium">{event.capacity.toLocaleString()} Capacity</p>
+                      <p className="text-xs text-white/80">Spaces Available</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-white">
+                    <DollarSign className="w-5 h-5" />
+                    <div className="text-left">
+                      <p className="text-sm font-medium">
+                        {event.price === 0 ? 'FREE' : `$${event.price.toLocaleString()}`}
+                      </p>
+                      <p className="text-xs text-white/80">
+                        {event.price === 0 ? 'No Cost' : 'Per Ticket'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Organizer Info */}
+                <div className="flex items-center justify-center space-x-3 mb-8">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-lg border-2 border-white/30 shadow-lg">
+                    {(event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white/80 text-sm font-medium">Organized by</p>
+                    <p className="text-white font-semibold text-lg">
+                      {event.organizers?.organization_name || 
+                       `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
+                       'Event Organizer'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <button 
+                    onClick={() => handleRegisterNow(event.id)}
+                    className="group relative bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 flex items-center space-x-3 border border-white/20 backdrop-blur-sm"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <span className="relative z-10">
+                      {event.price === 0 ? 'Register Free' : 'Get Tickets'}
+                    </span>
+                    <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-700 rounded-2xl"></div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => handleViewEvent(event.id)}
+                    className="group bg-white/10 backdrop-blur-xl border-2 border-white/30 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white/20 transition-all duration-300 flex items-center space-x-2"
+                  >
+                    <Clock className="w-5 h-5" />
+                    <span>View Details</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Hero Content */}
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-            Discover Amazing
-            <span className="block bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-              Events Near You
-            </span>
-          </h2>
-
-          <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Whether you're organizing corporate events, planning memorable experiences, or looking for exciting activities, HelloSnippet connects you with the perfect event ecosystem.
-          </p>
-
-          {/* No Events Message */}
-          <div className="mb-6 p-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl max-w-md mx-auto">
-            <p className="text-white/90 text-sm font-medium mb-2">
-              🎪 Ready for Amazing Events!
-            </p>
-            <p className="text-white/70 text-xs">
-              Published events will appear here automatically. Create and publish your first event to see it featured!
-            </p>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button 
-              onClick={() => navigate('/signup/organizer')}
-              className="group bg-white text-primary-500 px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-gray-50 transition-all duration-300 flex items-center space-x-2 shadow-2xl hover:shadow-3xl transform hover:-translate-y-1"
-            >
-              <Calendar className="w-5 h-5" />
-              <span>Create Event</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            
-            <button 
-              onClick={() => navigate('/discover')}
-              className="group bg-transparent border-2 border-white text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:bg-white hover:text-primary-500 transition-all duration-300 flex items-center space-x-2"
-            >
-              <Users className="w-5 h-5" />
-              <span>Browse Events</span>
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">Create</div>
-              <div className="text-white/80">Your First Event</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">Publish</div>
-              <div className="text-white/80">& Go Live</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">Watch</div>
-              <div className="text-white/80">It Appear Here</div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
+
+      {/* Navigation Arrows */}
+      {events.length > 1 && (
+        <>
+          <button
+            onClick={prevSlide}
+            className="absolute left-4 lg:left-8 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-xl hover:bg-white/20 text-white p-4 rounded-full transition-all duration-200 hover:scale-110 border border-white/20 shadow-2xl group"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-4 lg:right-8 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-xl hover:bg-white/20 text-white p-4 rounded-full transition-all duration-200 hover:scale-110 border border-white/20 shadow-2xl group"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        </>
+      )}
+
+      {/* Slide Indicators */}
+      {events.length > 1 && (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3">
+          {events.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`h-3 rounded-full transition-all duration-300 border border-white/30 backdrop-blur-sm ${
+                index === currentSlide
+                  ? 'bg-white w-8 shadow-lg shadow-white/25'
+                  : 'bg-white/50 hover:bg-white/70 w-3'
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 };

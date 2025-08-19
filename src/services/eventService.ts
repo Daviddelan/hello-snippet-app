@@ -41,6 +41,8 @@ export class EventService {
    */
   static async getPublishedEvents(limit: number = 10, includeOrganizerInfo: boolean = true) {
     try {
+      console.log('🔍 EventService: Fetching published events...', { limit, includeOrganizerInfo });
+      
       const { data, error } = await supabase
         .from('events')
         .select(includeOrganizerInfo ? `
@@ -53,30 +55,38 @@ export class EventService {
           )
         ` : '*')
         .eq('is_published', true)
-        .eq(includeOrganizerInfo ? 'organizers.is_verified' : 'status', includeOrganizerInfo ? true : 'published')
+        .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
+      console.log('📊 EventService: Query result:', { data: data?.length, error });
+      
       if (error) {
         // If table doesn't exist, return empty array instead of error
         if (error.code === '42P01') {
-          console.warn('Events table does not exist yet. Please run the database migration.');
+          console.warn('❌ Events table does not exist yet. Please run the database migration.');
           return {
             success: true,
             message: 'Events table not found - database migration needed',
             events: []
           };
         }
+        console.error('❌ EventService: Database error:', error);
         throw new Error(`Published events fetch error: ${error.message}`);
       }
 
+      console.log('✅ EventService: Successfully fetched', data?.length || 0, 'events');
+      if (data && data.length > 0) {
+        console.log('📋 Events found:', data.map(e => `"${e.title}" (status: ${e.status}, published: ${e.is_published})`));
+      }
+      
       return {
         success: true,
         message: `Found ${data?.length || 0} published events`,
         events: data || []
       };
     } catch (error) {
-      console.error('Published events fetch error:', error);
+      console.error('❌ EventService: Published events fetch error:', error);
       return {
         success: false,
         message: 'Failed to load published events',
