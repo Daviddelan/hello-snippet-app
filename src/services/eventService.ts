@@ -52,7 +52,8 @@ export class EventService {
             organization_name,
             first_name,
             last_name,
-            is_verified
+            is_verified,
+            avatar_url
           )
         ` : '*')
         .eq('is_published', true)
