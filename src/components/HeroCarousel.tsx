@@ -56,7 +56,7 @@ const HeroCarousel = () => {
             .from('events')
             .select(`
               *,
-              organizers!inner (
+              organizers (
                 id,
                 organization_name,
                 first_name,
@@ -73,10 +73,12 @@ const HeroCarousel = () => {
           console.log('📊 Joined query result:', { 
             count: joinedData?.length || 0, 
             error: joinedError,
-            sample: joinedData?.[0] ? {
-              title: joinedData[0].title,
-              organizer: joinedData[0].organizers
-            } : null
+            events: joinedData?.map(e => ({
+              title: e.title,
+              organizer_id: e.organizer_id,
+              organizer_data: e.organizers,
+              organizer_name: e.organizers?.organization_name || `${e.organizers?.first_name} ${e.organizers?.last_name}`.trim()
+            }))
           });
           
           if (joinedData && joinedData.length > 0) {
@@ -89,7 +91,7 @@ const HeroCarousel = () => {
               events: joinedData.map(e => ({
                 id: e.id,
                 title: e.title,
-                organizer_name: e.organizers?.organization_name || `${e.organizers?.first_name} ${e.organizers?.last_name}`.trim(),
+                organizer_name: e.organizers?.organization_name || `${e.organizers?.first_name || ''} ${e.organizers?.last_name || ''}`.trim() || 'Unknown Organizer',
                 organizer_id: e.organizer_id
               }))
             });
@@ -418,9 +420,8 @@ const HeroCarousel = () => {
                     <p className="text-white/90 text-base font-medium tracking-wide">Organized by</p>
                     <p className="text-white font-bold text-2xl drop-shadow-lg">
                       {event.organizers?.organization_name || 
-                       (event.organizers?.first_name && event.organizers?.last_name 
-                         ? `${event.organizers.first_name} ${event.organizers.last_name}` 
-                         : event.organizers?.first_name || event.organizers?.last_name || 'Unknown Organizer')}
+                       `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
+                       'Unknown Organizer'}
                     </p>
                     {event.organizers?.is_verified && (
                       <div className="flex items-center mt-1">
