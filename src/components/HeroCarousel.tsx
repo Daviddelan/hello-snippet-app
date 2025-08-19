@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, Calendar, MapPin, Users, DollarSign, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { EventService } from '../services/eventService';
+import { supabase } from '../lib/supabase';
 
 const HeroCarousel = () => {
   const navigate = useNavigate();
@@ -9,15 +10,60 @@ const HeroCarousel = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        console.log('🔍 HeroCarousel: Starting to load events...');
+        console.log('🔍 HeroCarousel: Starting comprehensive event loading...');
         setIsLoading(true);
         
+        // Step 1: Test direct database access
+        console.log('Step 1: Testing direct database access...');
+        const { data: directData, error: directError } = await supabase
+          .from('events')
+          .select(`
+            *,
+            organizers (
+              organization_name,
+              first_name,
+              last_name,
+              is_verified
+            )
+          `)
+          .eq('is_published', true)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        console.log('📊 Direct query result:', { data: directData, error: directError });
+
+        // Step 2: Test without organizer join
+        console.log('Step 2: Testing without organizer join...');
+        const { data: simpleData, error: simpleError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('is_published', true)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        console.log('📊 Simple query result:', { data: simpleData, error: simpleError });
+
+        // Step 3: Test just published flag
+        console.log('Step 3: Testing just published flag...');
+        const { data: publishedData, error: publishedError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('is_published', true)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        console.log('📊 Published only query result:', { data: publishedData, error: publishedError });
+
+        // Step 4: Test with service
         const result = await EventService.getPublishedEvents(10, true);
-        console.log('📊 HeroCarousel: Service result:', result);
+        console.log('📊 Service result:', result);
         
         setDebugInfo({
           success: result.success,
@@ -33,17 +79,40 @@ const HeroCarousel = () => {
         });
 
         if (result.success && result.events && result.events.length > 0) {
-          console.log('✅ HeroCarousel: Found', result.events.length, 'published events');
-          console.log('📋 Events:', result.events.map(e => `"${e.title}" (${e.status}, published: ${e.is_published})`));
-          setEvents(result.events);
+        setDebugInfo({
+          directQuery: { data: directData?.length || 0, error: directError?.message },
+          simpleQuery: { data: simpleData?.length || 0, error: simpleError?.message },
+          publishedQuery: { data: publishedData?.length || 0, error: publishedError?.message },
+          serviceResult: { success: result.success, count: result.events?.length || 0, error: result.error }
+        });
+
+        // Use the data that worked
+        let eventsToUse = [];
+        if (directData && directData.length > 0) {
+          eventsToUse = directData;
+          console.log('✅ Using direct query data');
+        } else if (simpleData && simpleData.length > 0) {
+          eventsToUse = simpleData;
+          console.log('✅ Using simple query data');
+        } else if (publishedData && publishedData.length > 0) {
+          eventsToUse = publishedData;
+          console.log('✅ Using published query data');
+        } else if (result.success && result.events && result.events.length > 0) {
+          eventsToUse = result.events;
+          console.log('✅ Using service data');
         } else {
           console.log('📭 HeroCarousel: No published events found');
-          console.log('🔍 Debug info:', result);
-          setEvents([]);
+          console.log('📭 No events found in any query');
         }
+
+        setEvents(eventsToUse);
+        console.log('🎯 Final events set:', eventsToUse.length);
 
       } catch (error) {
         console.error('❌ HeroCarousel: Error loading events:', error);
+        setDebugInfo({
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
         setDebugInfo({
           error: error instanceof Error ? error.message : 'Unknown error',
           success: false
@@ -137,6 +206,28 @@ const HeroCarousel = () => {
               <p className="text-white/70 text-xs mb-3">
                 Published events will appear here automatically. Create and publish your first event to see it featured!
               </p>
+              
+              {/* Enhanced Debug Info */}
+              {debugInfo && (
+                <div className="text-left bg-black/20 rounded-lg p-4 mt-4 max-w-2xl mx-auto">
+                  <p className="text-white/90 text-sm font-mono mb-2">
+                    <strong>🔍 Debug Information:</strong>
+                  </p>
+                  <div className="text-white/80 text-xs font-mono space-y-1">
+                    <p><strong>Direct Query:</strong> {debugInfo.directQuery?.data || 0} events {debugInfo.directQuery?.error && `(Error: ${debugInfo.directQuery.error})`}</p>
+                    <p><strong>Simple Query:</strong> {debugInfo.simpleQuery?.data || 0} events {debugInfo.simpleQuery?.error && `(Error: ${debugInfo.simpleQuery.error})`}</p>
+                    <p><strong>Published Query:</strong> {debugInfo.publishedQuery?.data || 0} events {debugInfo.publishedQuery?.error && `(Error: ${debugInfo.publishedQuery.error})`}</p>
+                    <p><strong>Service Result:</strong> {debugInfo.serviceResult?.success ? 'Success' : 'Failed'} - {debugInfo.serviceResult?.count || 0} events {debugInfo.serviceResult?.error && `(Error: ${debugInfo.serviceResult.error})`}</p>
+                    {debugInfo.error && <p><strong>General Error:</strong> {debugInfo.error}</p>}
+                  </div>
+                  <div className="mt-3 p-2 bg-yellow-500/20 rounded text-white/90 text-xs">
+                    <strong>💡 Troubleshooting:</strong><br/>
+                    If all queries show 0 events but SQL shows data, this is an RLS policy issue.<br/>
+                    Try running: <code className="bg-black/30 px-1 rounded">ALTER TABLE events DISABLE ROW LEVEL SECURITY;</code><br/>
+                    Then re-enable with proper policies.
+                  </div>
+                </div>
+              )}
               
               {/* Debug Info */}
               {debugInfo && (
