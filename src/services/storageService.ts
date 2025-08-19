@@ -39,7 +39,7 @@ export class StorageService {
       if (file.size > this.MAX_FILE_SIZE) {
         return {
           isValid: false,
-          error: `File size too large. Maximum size: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`
+          error: `File size too large. Maximum size: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB. The image will be compressed during cropping.`
         };
       }
 
@@ -174,7 +174,13 @@ export class StorageService {
     eventId?: string
   ): Promise<UploadResult> {
     try {
-      console.log('🚀 Starting cropped image upload...', { organizerId, eventId, blobSize: blob.size });
+      console.log('🚀 Starting cropped image upload...', { 
+        organizerId, 
+        eventId, 
+        blobSize: blob.size,
+        blobSizeMB: (blob.size / (1024 * 1024)).toFixed(2),
+        blobType: blob.type
+      });
       
       // Get detailed storage status first
       console.log('🔍 Running detailed storage check...');
@@ -190,17 +196,12 @@ export class StorageService {
       
       console.log('✅ Storage ready, proceeding with upload...');
       
-      // Convert blob to file for validation
-      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
-      
-      // Validate the cropped image
-      console.log('🔍 Validating cropped image...');
-      const validation = await this.validateImage(file);
-      if (!validation.isValid) {
-        console.error('❌ Image validation failed:', validation.error);
+      // Basic blob validation (skip file validation since it's already processed)
+      if (blob.size > this.MAX_FILE_SIZE) {
+        console.error('❌ Blob too large:', blob.size);
         return {
           success: false,
-          error: validation.error
+          error: `Processed image is too large: ${(blob.size / (1024 * 1024)).toFixed(2)}MB. Maximum allowed: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB`
         };
       }
 

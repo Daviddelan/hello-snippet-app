@@ -120,7 +120,31 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           return;
         }
 
-        console.log('Created blob for upload:', { size: blob.size, type: blob.type });
+        console.log('Initial blob created:', { size: blob.size, type: blob.type, sizeMB: (blob.size / (1024 * 1024)).toFixed(2) });
+        
+        // Check if blob is too large and compress if needed
+        let finalBlob = blob;
+        if (blob.size > 5 * 1024 * 1024) { // If larger than 5MB, compress more
+          console.log('Blob too large, compressing further...');
+          canvas.toBlob(async (compressedBlob) => {
+            if (!compressedBlob) {
+              setError('Failed to compress image');
+              setIsProcessing(false);
+              setIsUploading(false);
+              return;
+            }
+            
+            console.log('Compressed blob:', { size: compressedBlob.size, type: compressedBlob.type, sizeMB: (compressedBlob.size / (1024 * 1024)).toFixed(2) });
+            await uploadBlob(compressedBlob);
+          }, 'image/jpeg', 0.7); // Lower quality for compression
+          return;
+        }
+        
+        await uploadBlob(finalBlob);
+      }, 'image/jpeg', 0.85); // Slightly lower quality to reduce size
+
+      // Extract upload logic to reusable function
+      const uploadBlob = async (blob: Blob) => {
         setIsUploading(true);
 
         try {
@@ -175,7 +199,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           setIsUploading(false);
           setIsProcessing(false);
         }
-      }, 'image/jpeg', 0.9);
+      };
 
     } catch (error) {
       const errorMsg = `Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`;
