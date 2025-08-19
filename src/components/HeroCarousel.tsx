@@ -388,16 +388,39 @@ const HeroCarousel = () => {
 
                 {/* Organizer Info */}
                 <div className="flex items-center justify-center space-x-3 mb-8">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-lg border-2 border-white/30 shadow-lg">
-                    {(event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase()}
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-xl border-3 border-white/40 shadow-xl overflow-hidden">
+                    {event.organizers?.avatar_url ? (
+                      <img 
+                        src={event.organizers.avatar_url} 
+                        alt={event.organizers?.organization_name || 'Organizer'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerHTML = (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase();
+                        }}
+                      />
+                    ) : (
+                      (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="text-left">
-                    <p className="text-white/80 text-sm font-medium">Organized by</p>
-                    <p className="text-white font-semibold text-lg">
+                    <p className="text-white/90 text-sm font-medium tracking-wide">Organized by</p>
+                    <p className="text-white font-bold text-xl drop-shadow-lg">
                       {event.organizers?.organization_name || 
                        `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
                        'Event Organizer'}
                     </p>
+                    {event.organizers?.is_verified && (
+                      <div className="flex items-center mt-1">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-white/90 text-xs font-medium">Verified Organizer</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
