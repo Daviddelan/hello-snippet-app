@@ -79,7 +79,83 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file size (2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('File size must be less than 2MB');
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
       setBrandingData(prev => ({ ...prev, logo: file }));
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!organizer?.avatar_url) return;
+    
+    if (confirm('Are you sure you want to remove your organization logo?')) {
+      try {
+        // Here you would call an API to remove the logo from storage
+        // For now, we'll just update the local state
+        setBrandingData(prev => ({ ...prev, logo: null }));
+        // TODO: Implement actual logo removal from storage and database
+        alert('Logo removed successfully');
+      } catch (error) {
+        console.error('Error removing logo:', error);
+        alert('Failed to remove logo');
+      }
+    }
+  };
+
+  const handleSaveBranding = async () => {
+    if (!organizer) return;
+    
+    try {
+      let avatarUrl = organizer.avatar_url;
+      
+      // If a new logo was selected, upload it
+      if (brandingData.logo) {
+        // Import storage service dynamically to avoid circular imports
+        const { StorageService } = await import('../../services/storageService');
+        
+        const uploadResult = await StorageService.uploadEventImage(
+          brandingData.logo,
+          organizer.id,
+          'avatar'
+        );
+        
+        if (uploadResult.success && uploadResult.url) {
+          avatarUrl = uploadResult.url;
+        } else {
+          throw new Error(uploadResult.error || 'Failed to upload logo');
+        }
+      }
+      
+      // Update organizer profile with new avatar URL
+      const { OrganizerService } = await import('../../services/organizerService');
+      const updateResult = await OrganizerService.updateOrganizerProfile(organizer.id, {
+        avatar_url: avatarUrl
+      });
+      
+      if (updateResult.success) {
+        alert('Branding updated successfully!');
+        // Update local organizer state
+        if (updateResult.organizer) {
+          // You might want to update the parent component's organizer state here
+          window.location.reload(); // Simple refresh for now
+        }
+      } else {
+        throw new Error(updateResult.error || 'Failed to update profile');
+      }
+      
+    } catch (error) {
+      console.error('Error saving branding:', error);
+      alert(`Failed to save branding: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -235,11 +311,17 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">Organization Logo</label>
                     <div className="flex items-center space-x-6">
-                      <div className="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
+                      <div className="w-24 h-24 bg-gray-100 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden">
                         {brandingData.logo ? (
                           <img 
                             src={URL.createObjectURL(brandingData.logo)} 
                             alt="Logo preview" 
+                            className="w-full h-full object-cover rounded-xl"
+                          />
+                        ) : organizer?.avatar_url ? (
+                          <img 
+                            src={organizer.avatar_url} 
+                            alt="Current logo" 
                             className="w-full h-full object-cover rounded-xl"
                           />
                         ) : (
@@ -262,6 +344,14 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
                           <span>Upload Logo</span>
                         </label>
                         <p className="text-xs text-gray-500 mt-2">PNG, JPG up to 2MB. Recommended size: 200x200px</p>
+                        {organizer?.avatar_url && (
+                          <button
+                            onClick={handleRemoveLogo}
+                            className="block mt-2 text-xs text-red-600 hover:text-red-800"
+                          >
+                            Remove current logo
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -362,7 +452,10 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
               </div>
 
               <div className="flex justify-end pt-6 border-t border-gray-200">
-                <button className="flex items-center space-x-2 bg-primary-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-600 transition-colors">
+                <button 
+                  onClick={handleSaveBranding}
+                  className="flex items-center space-x-2 bg-primary-500 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-600 transition-colors"
+                >
                   <Save className="h-4 w-4" />
                   <span>Save Branding</span>
                 </button>

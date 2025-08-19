@@ -155,6 +155,8 @@ export class OrganizerService {
    */
   static async updateOrganizerProfile(userId: string, updates: Partial<Organizer>) {
     try {
+      console.log('Updating organizer profile:', userId, updates);
+      
       const { data, error } = await supabase
         .from('organizers')
         .update(updates)
@@ -163,9 +165,11 @@ export class OrganizerService {
         .single();
 
       if (error) {
+        console.error('Update organizer profile error:', error);
         throw new Error(`Update error: ${error.message}`);
       }
 
+      console.log('Organizer profile updated successfully:', data);
       return {
         success: true,
         organizer: data
