@@ -43,15 +43,7 @@ export class EventService {
     try {
       console.log('🔍 EventService: Fetching published events...', { limit, includeOrganizerInfo });
       
-      // First, let's try a simple query to see what's happening
-      console.log('🔍 Testing simple events query...');
-      const { data: testData, error: testError } = await supabase
-        .from('events')
-        .select('id, title, status, is_published')
-        .limit(5);
-      
-      console.log('📊 Simple query result:', { data: testData?.length, error: testError });
-      
+      // Try to fetch published events with proper filtering
       const { data, error } = await supabase
         .from('events')
         .select(includeOrganizerInfo ? `
@@ -64,7 +56,6 @@ export class EventService {
           )
         ` : '*')
         .eq('is_published', true)
-        .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
