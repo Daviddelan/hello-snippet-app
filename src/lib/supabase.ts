@@ -21,6 +21,8 @@ export interface Organizer {
   event_types: string[];
   profile_completed: boolean;
   is_verified: boolean;
+  avatar_url?: string;
+  bio?: string;
   created_at: string;
   updated_at: string;
 }
