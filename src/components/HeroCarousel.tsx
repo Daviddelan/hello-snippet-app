@@ -14,55 +14,101 @@ const HeroCarousel = () => {
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        console.log('🔍 HeroCarousel: Starting comprehensive event loading...');
+        console.log('🔍 HeroCarousel: Starting event loading with organizer debug...');
         setIsLoading(true);
         
-        // Step 1: Test direct database access
-        console.log('Step 1: Testing direct database access...');
+        // Step 1: Test basic event query
+        console.log('Step 1: Testing basic events query...');
         const { data: directData, error: directError } = await supabase
           .from('events')
-          .select(`
-            *,
-            organizers (
-              organization_name,
-              first_name,
-              last_name,
-              is_verified
-            )
-          `)
-          .eq('is_published', true)
-          .eq('status', 'published')
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        console.log('📊 Direct query result:', { data: directData, error: directError });
-
-        // Step 2: Test without organizer join
-        console.log('Step 2: Testing without organizer join...');
-        const { data: simpleData, error: simpleError } = await supabase
-          .from('events')
           .select('*')
           .eq('is_published', true)
           .eq('status', 'published')
           .order('created_at', { ascending: false })
           .limit(10);
 
-        console.log('📊 Simple query result:', { data: simpleData, error: simpleError });
+        console.log('📊 Basic events query result:', { 
+          count: directData?.length || 0, 
+          error: directError,
+          events: directData?.map(e => ({ id: e.id, title: e.title, organizer_id: e.organizer_id }))
+        });
 
-        // Step 3: Test just published flag
-        console.log('Step 3: Testing just published flag...');
-        const { data: publishedData, error: publishedError } = await supabase
-          .from('events')
-          .select('*')
-          .eq('is_published', true)
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        console.log('📊 Published only query result:', { data: publishedData, error: publishedError });
-
-        // Step 4: Test with service
+        // Step 2: Test organizer data separately
+        if (directData && directData.length > 0) {
+          console.log('Step 2: Testing organizer data fetch...');
+          const organizerIds = directData.map(e => e.organizer_id).filter(Boolean);
+          console.log('📋 Organizer IDs to fetch:', organizerIds);
+          
+          const { data: organizerData, error: organizerError } = await supabase
+            .from('organizers')
+            .select('id, organization_name, first_name, last_name, is_verified, avatar_url')
+            .in('id', organizerIds);
+          
+          console.log('📊 Organizer query result:', { 
+            count: organizerData?.length || 0, 
+            error: organizerError,
+            organizers: organizerData
+          });
+          
+          // Step 3: Test joined query
+          console.log('Step 3: Testing joined query...');
+          const { data: joinedData, error: joinedError } = await supabase
+            .from('events')
+            .select(`
+              *,
+              organizers!inner (
+                id,
+                organization_name,
+                first_name,
+                last_name,
+                is_verified,
+                avatar_url
+              )
+            `)
+            .eq('is_published', true)
+            .eq('status', 'published')
+            .order('created_at', { ascending: false })
+            .limit(10);
+          
+          console.log('📊 Joined query result:', { 
+            count: joinedData?.length || 0, 
+            error: joinedError,
+            sample: joinedData?.[0] ? {
+              title: joinedData[0].title,
+              organizer: joinedData[0].organizers
+            } : null
+          });
+          
+          if (joinedData && joinedData.length > 0) {
+            setEvents(joinedData);
+            console.log('✅ Using joined query data with organizers');
+            setDebugInfo({
+              success: true,
+              message: `Found ${joinedData.length} events with organizer data`,
+              eventCount: joinedData.length,
+              events: joinedData.map(e => ({
+                id: e.id,
+                title: e.title,
+                organizer_name: e.organizers?.organization_name || `${e.organizers?.first_name} ${e.organizers?.last_name}`.trim(),
+                organizer_id: e.organizer_id
+              }))
+            });
+            return;
+          }
+        }
+        
+        // Step 4: Fallback to service method
+        console.log('Step 4: Trying service method...');
         const result = await EventService.getPublishedEvents(10, true);
         console.log('📊 Service result:', result);
+        
+        if (result.success && result.events && result.events.length > 0) {
+          setEvents(result.events);
+          console.log('✅ Using service data');
+        } else {
+          console.log('❌ No events found through any method');
+          setEvents([]);
+        }
         
         setDebugInfo({
           success: result.success,
@@ -71,45 +117,6 @@ const HeroCarousel = () => {
           events: result.events?.map(e => ({
             id: e.id,
             title: e.title,
-            status: e.status,
-            is_published: e.is_published,
-            organizer: e.organizers?.organization_name
-          })) || []
-        });
-
-        if (result.success && result.events && result.events.length > 0) {
-          setEvents(result.events);
-          console.log('🎯 Final events set:', result.events.length);
-        } else {
-          setDebugInfo({
-            directQuery: { data: directData?.length || 0, error: directError?.message },
-            simpleQuery: { data: simpleData?.length || 0, error: simpleError?.message },
-            publishedQuery: { data: publishedData?.length || 0, error: publishedError?.message },
-            serviceResult: { success: result.success, count: result.events?.length || 0, error: result.error }
-          });
-
-          // Use the data that worked
-          let eventsToUse = [];
-          if (directData && directData.length > 0) {
-            eventsToUse = directData;
-            console.log('✅ Using direct query data');
-          } else if (simpleData && simpleData.length > 0) {
-            eventsToUse = simpleData;
-            console.log('✅ Using simple query data');
-          } else if (publishedData && publishedData.length > 0) {
-            eventsToUse = publishedData;
-            console.log('✅ Using published query data');
-          } else if (result.success && result.events && result.events.length > 0) {
-            eventsToUse = result.events;
-            console.log('✅ Using service data');
-          } else {
-            console.log('📭 HeroCarousel: No published events found');
-            console.log('📭 No events found in any query');
-          }
-
-          setEvents(eventsToUse);
-          console.log('🎯 Final events set:', eventsToUse.length);
-        }
 
       } catch (error) {
         console.error('❌ HeroCarousel: Error loading events:', error);
@@ -388,7 +395,7 @@ const HeroCarousel = () => {
 
                 {/* Organizer Info */}
                 <div className="flex items-center justify-center space-x-3 mb-8">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-xl border-3 border-white/40 shadow-xl overflow-hidden">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-2xl border-4 border-white/60 shadow-2xl overflow-hidden">
                     {event.organizers?.avatar_url ? (
                       <img 
                         src={event.organizers.avatar_url} 
@@ -397,7 +404,8 @@ const HeroCarousel = () => {
                         onError={(e) => {
                           // Fallback to initials if image fails to load
                           e.currentTarget.style.display = 'none';
-                          e.currentTarget.parentElement!.innerHTML = (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase();
+                          const fallbackText = (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase();
+                          e.currentTarget.parentElement!.innerHTML = `<span class="text-2xl font-bold">${fallbackText}</span>`;
                         }}
                       />
                     ) : (
@@ -405,21 +413,21 @@ const HeroCarousel = () => {
                     )}
                   </div>
                   <div className="text-left">
-                    <p className="text-white/90 text-sm font-medium tracking-wide">Organized by</p>
-                    <p className="text-white font-bold text-xl drop-shadow-lg">
+                    <p className="text-white/90 text-base font-medium tracking-wide">Organized by</p>
+                    <p className="text-white font-bold text-2xl drop-shadow-lg">
                       {event.organizers?.organization_name || 
                        (event.organizers?.first_name && event.organizers?.last_name 
                          ? `${event.organizers.first_name} ${event.organizers.last_name}` 
-                         : event.organizers?.first_name || event.organizers?.last_name || 'Event Organizer')}
+                         : event.organizers?.first_name || event.organizers?.last_name || 'Unknown Organizer')}
                     </p>
                     {event.organizers?.is_verified && (
                       <div className="flex items-center mt-1">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center mr-2">
-                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <span className="text-white/90 text-xs font-medium">Verified Organizer</span>
+                        <span className="text-white/90 text-sm font-medium">Verified Organizer</span>
                       </div>
                     )}
                   </div>
