@@ -236,17 +236,15 @@ const HeroCarousel = () => {
                     <strong>🔍 Debug Information:</strong>
                   </p>
                   <div className="text-white/80 text-xs font-mono space-y-1">
-                    <p><strong>Direct Query:</strong> {debugInfo.directQuery?.data || 0} events {debugInfo.directQuery?.error && `(Error: ${debugInfo.directQuery.error})`}</p>
-                    <p><strong>Simple Query:</strong> {debugInfo.simpleQuery?.data || 0} events {debugInfo.simpleQuery?.error && `(Error: ${debugInfo.simpleQuery.error})`}</p>
-                    <p><strong>Published Query:</strong> {debugInfo.publishedQuery?.data || 0} events {debugInfo.publishedQuery?.error && `(Error: ${debugInfo.publishedQuery.error})`}</p>
-                    <p><strong>Service Result:</strong> {debugInfo.serviceResult?.success ? 'Success' : 'Failed'} - {debugInfo.serviceResult?.count || 0} events {debugInfo.serviceResult?.error && `(Error: ${debugInfo.serviceResult.error})`}</p>
+                    <p><strong>Events Found:</strong> {debugInfo.eventCount || 0}</p>
+                    <p><strong>Status:</strong> {debugInfo.success ? 'Success' : 'Failed'}</p>
+                    <p><strong>Message:</strong> {debugInfo.message}</p>
                     {debugInfo.error && <p><strong>General Error:</strong> {debugInfo.error}</p>}
                   </div>
                   <div className="mt-3 p-2 bg-yellow-500/20 rounded text-white/90 text-xs">
-                    <strong>💡 Troubleshooting:</strong><br/>
-                    If all queries show 0 events but SQL shows data, this is an RLS policy issue.<br/>
-                    Try running: <code className="bg-black/30 px-1 rounded">ALTER TABLE events DISABLE ROW LEVEL SECURITY;</code><br/>
-                    Then re-enable with proper policies.
+                    <strong>💡 RLS Policy Issue Fixed:</strong><br/>
+                    The infinite recursion in organizer policies has been resolved.<br/>
+                    Organizer data should now load properly for authenticated users.
                   </div>
                 </div>
               )}
