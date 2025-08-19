@@ -43,11 +43,20 @@ export class EventService {
     try {
       console.log('🔍 EventService: Fetching published events...', { limit, includeOrganizerInfo });
       
+      // First, let's try a simple query to see what's happening
+      console.log('🔍 Testing simple events query...');
+      const { data: testData, error: testError } = await supabase
+        .from('events')
+        .select('id, title, status, is_published')
+        .limit(5);
+      
+      console.log('📊 Simple query result:', { data: testData?.length, error: testError });
+      
       const { data, error } = await supabase
         .from('events')
         .select(includeOrganizerInfo ? `
           *,
-          organizers!inner (
+          organizers (
             organization_name,
             first_name,
             last_name,
@@ -62,6 +71,13 @@ export class EventService {
       console.log('📊 EventService: Query result:', { data: data?.length, error });
       
       if (error) {
+        console.error('❌ EventService: Full error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        
         // If table doesn't exist, return empty array instead of error
         if (error.code === '42P01') {
           console.warn('❌ Events table does not exist yet. Please run the database migration.');
@@ -71,6 +87,18 @@ export class EventService {
             events: []
           };
         }
+        
+        // If it's an RLS error, provide specific guidance
+        if (error.code === '42501' || error.message.includes('RLS') || error.message.includes('policy')) {
+          console.warn('❌ RLS policy blocking access to events');
+          return {
+            success: false,
+            message: 'RLS policy blocking access - need to fix policies',
+            error: 'Row Level Security is blocking access to published events. Please check your RLS policies.',
+            events: []
+          };
+        }
+        
         console.error('❌ EventService: Database error:', error);
         throw new Error(`Published events fetch error: ${error.message}`);
       }
