@@ -276,7 +276,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Event Image</h3>
                 <p className="text-gray-600 mb-4">
-                  Choose an image for your {imageType === 'avatar' ? 'profile/logo' : 'event'}. It will be validated, cropped, and uploaded to secure storage.
+                  Choose an image for your event. It will be validated, cropped, and uploaded to secure storage.
                 </p>
                 
                 {/* Storage Setup Notice */}
@@ -363,7 +363,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                   <div className="text-center">
                     <h5 className="text-sm font-medium text-gray-700 mb-2">Preview</h5>
                     <div className="inline-block border border-gray-200 rounded-lg overflow-hidden">
-                      <canvas
+                      Adjust the crop area to fit the {imageType === 'avatar' ? 'profile format (square)' : 'slideshow format (16:9 aspect ratio)'}
                         ref={canvasRef}
                         className="max-w-xs h-auto"
                         style={{
