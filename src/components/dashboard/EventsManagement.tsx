@@ -77,6 +77,9 @@ const EventsManagement: React.FC<EventsManagementProps> = ({ organizer }) => {
             ? { ...event, is_published: !currentStatus, status: !currentStatus ? 'published' : 'draft' }
             : event
         ));
+        
+        // Show success message
+        alert(result.message || `Event ${!currentStatus ? 'published' : 'unpublished'} successfully!`);
       } else {
         alert(result.error || 'Failed to update event');
       }

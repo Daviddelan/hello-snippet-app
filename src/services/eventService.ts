@@ -39,19 +39,21 @@ export class EventService {
   /**
    * Get published events for public display
    */
-  static async getPublishedEvents(limit: number = 10) {
+  static async getPublishedEvents(limit: number = 10, includeOrganizerInfo: boolean = true) {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select(`
+        .select(includeOrganizerInfo ? `
           *,
-          organizers (
+          organizers!inner (
             organization_name,
             first_name,
-            last_name
+            last_name,
+            is_verified
           )
-        `)
+        ` : '*')
         .eq('is_published', true)
+        .eq(includeOrganizerInfo ? 'organizers.is_verified' : 'status', includeOrganizerInfo ? true : 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -61,6 +63,7 @@ export class EventService {
           console.warn('Events table does not exist yet. Please run the database migration.');
           return {
             success: true,
+            message: 'Events table not found - database migration needed',
             events: []
           };
         }
@@ -69,12 +72,14 @@ export class EventService {
 
       return {
         success: true,
+        message: `Found ${data?.length || 0} published events`,
         events: data || []
       };
     } catch (error) {
       console.error('Published events fetch error:', error);
       return {
         success: false,
+        message: 'Failed to load published events',
         error: error instanceof Error ? error.message : 'An unexpected error occurred'
       };
     }
