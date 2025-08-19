@@ -9,13 +9,8 @@ import {
   Save,
   Upload,
   Eye,
-  EyeOff,
-  Camera,
-  Trash2
+  EyeOff
 } from 'lucide-react';
-import ImageCropper from './ImageCropper';
-import { OrganizerService } from '../../services/organizerService';
-import { StorageService } from '../../services/storageService';
 import type { Organizer } from '../../lib/supabase';
 
 interface SettingsProps {
@@ -25,13 +20,6 @@ interface SettingsProps {
 const Settings: React.FC<SettingsProps> = ({ organizer }) => {
   const [activeTab, setActiveTab] = useState('branding'); // Changed default to branding to match your screenshot
   const [showPassword, setShowPassword] = useState(false);
-  const [showImageCropper, setShowImageCropper] = useState(false);
-  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-  const [updateStatus, setUpdateStatus] = useState<{
-    type: 'success' | 'error' | null;
-    message: string;
-  }>({ type: null, message: '' });
-
   const [profileData, setProfileData] = useState({
     firstName: organizer?.first_name || '',
     lastName: organizer?.last_name || '',
@@ -39,9 +27,7 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
     phone: organizer?.phone || '',
     location: organizer?.location || '',
     organizationName: organizer?.organization_name || '',
-    eventTypes: organizer?.event_types || [],
-    bio: organizer?.bio || '',
-    avatarUrl: organizer?.avatar_url || ''
+    eventTypes: organizer?.event_types || []
   });
 
   const [brandingData, setBrandingData] = useState({
@@ -74,10 +60,6 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
 
   const handleProfileChange = (field: string, value: any) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
-    // Clear status when user makes changes
-    if (updateStatus.type) {
-      setUpdateStatus({ type: null, message: '' });
-    }
   };
 
   const handleEventTypeToggle = (eventType: string) => {
@@ -92,64 +74,6 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
   const handleSaveProfile = () => {
     // Handle profile save
     console.log('Saving profile:', profileData);
-    saveProfileData();
-  };
-
-  const saveProfileData = async () => {
-    if (!organizer) return;
-
-    setIsUpdatingProfile(true);
-    setUpdateStatus({ type: null, message: '' });
-
-    try {
-      const updates = {
-        first_name: profileData.firstName.trim(),
-        last_name: profileData.lastName.trim(),
-        phone: profileData.phone.trim() || null,
-        location: profileData.location.trim() || null,
-        organization_name: profileData.organizationName.trim(),
-        event_types: profileData.eventTypes,
-        bio: profileData.bio.trim() || null,
-        avatar_url: profileData.avatarUrl || null
-      };
-
-      const result = await OrganizerService.updateOrganizerProfile(organizer.id, updates);
-
-      if (result.success) {
-        setUpdateStatus({
-          type: 'success',
-          message: 'Profile updated successfully!'
-        });
-        
-        // Update the organizer prop would require parent component refresh
-        // For now, we'll just show success message
-        setTimeout(() => {
-          window.location.reload(); // Refresh to show updated data
-        }, 1500);
-      } else {
-        setUpdateStatus({
-          type: 'error',
-          message: result.error || 'Failed to update profile'
-        });
-      }
-    } catch (error) {
-      console.error('Profile update error:', error);
-      setUpdateStatus({
-        type: 'error',
-        message: 'An unexpected error occurred'
-      });
-    } finally {
-      setIsUpdatingProfile(false);
-    }
-  };
-
-  const handleAvatarCropped = (croppedImageUrl: string) => {
-    setProfileData(prev => ({ ...prev, avatarUrl: croppedImageUrl }));
-    setShowImageCropper(false);
-  };
-
-  const handleRemoveAvatar = () => {
-    setProfileData(prev => ({ ...prev, avatarUrl: '' }));
   };
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -203,74 +127,6 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
         <div className="p-6">
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              {/* Status Messages */}
-              {updateStatus.type && (
-                <div className={`p-4 rounded-xl border ${
-                  updateStatus.type === 'success' 
-                    ? 'bg-green-50 border-green-200 text-green-800'
-                    : 'bg-red-50 border-red-200 text-red-800'
-                }`}>
-                  <div className="flex items-center space-x-2">
-                    {updateStatus.type === 'success' ? (
-                      <Save className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <User className="w-5 h-5 text-red-500" />
-                    )}
-                    <span className="font-medium">{updateStatus.message}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Avatar Upload Section */}
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Picture / Organization Logo</h3>
-                <div className="flex items-center space-x-6">
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center">
-                      {profileData.avatarUrl ? (
-                        <img 
-                          src={profileData.avatarUrl} 
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Fallback to initials if image fails to load
-                            e.currentTarget.style.display = 'none';
-                            const fallbackText = (profileData.organizationName || profileData.firstName || 'O').charAt(0).toUpperCase();
-                            e.currentTarget.parentElement!.innerHTML = `<span class="text-2xl font-bold text-white">${fallbackText}</span>`;
-                          }}
-                        />
-                      ) : (
-                        <span className="text-2xl font-bold text-white">
-                          {(profileData.organizationName || profileData.firstName || 'O').charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    {profileData.avatarUrl && (
-                      <button
-                        onClick={handleRemoveAvatar}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                        title="Remove avatar"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowImageCropper(true)}
-                      className="inline-flex items-center space-x-2 bg-primary-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-600 transition-colors"
-                    >
-                      <Camera className="h-4 w-4" />
-                      <span>{profileData.avatarUrl ? 'Change Avatar' : 'Upload Avatar'}</span>
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Upload your organization logo or personal photo. Recommended size: 200x200px
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -685,16 +541,6 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
           )}
         </div>
       </div>
-
-      {/* Avatar Image Cropper Modal */}
-      {showImageCropper && organizer && (
-        <ImageCropper
-          onImageCropped={handleAvatarCropped}
-          onClose={() => setShowImageCropper(false)}
-          aspectRatio={1} // Square aspect ratio for avatars
-          organizerId={organizer.id}
-        />
-      )}
     </div>
   );
 };

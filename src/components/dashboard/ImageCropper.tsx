@@ -363,7 +363,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                   <div className="text-center">
                     <h5 className="text-sm font-medium text-gray-700 mb-2">Preview</h5>
                     <div className="inline-block border border-gray-200 rounded-lg overflow-hidden">
-                      Adjust the crop area to fit the {imageType === 'avatar' ? 'profile format (square)' : 'slideshow format (16:9 aspect ratio)'}
+                      <canvas
                         ref={canvasRef}
                         className="max-w-xs h-auto"
                         style={{
