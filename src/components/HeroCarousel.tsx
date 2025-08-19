@@ -260,10 +260,8 @@ const HeroCarousel = () => {
                     {debugInfo.error && `Error: ${debugInfo.error}`}
                   </p>
                   {debugInfo.events && debugInfo.events.length > 0 && (
-                        const fallback = document.createElement('span');
-                        fallback.className = 'text-2xl font-bold text-white';
-                        fallback.textContent = (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase();
-                        e.currentTarget.parentElement!.appendChild(fallback);
+                    <details className="mt-2">
+                      <summary className="text-white/70 text-xs cursor-pointer">View Events</summary>
                       <pre className="text-white/60 text-xs mt-1 overflow-auto max-h-20">
                         {JSON.stringify(debugInfo.events, null, 2)}
                       </pre>

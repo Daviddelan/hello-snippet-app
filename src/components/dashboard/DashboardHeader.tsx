@@ -51,26 +51,8 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, organize
             {/* Profile dropdown */}
             <div className="relative">
               <button className="flex items-center space-x-3 rounded-full bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center overflow-hidden">
-                  {organizer?.avatar_url ? (
-                    <img 
-                      src={organizer.avatar_url} 
-                      alt={organizer.organization_name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Fallback to initials if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        const fallback = document.createElement('div');
-                        fallback.className = 'w-full h-full flex items-center justify-center text-white font-bold text-xs';
-                        fallback.textContent = (organizer.organization_name || organizer.first_name || 'O').charAt(0).toUpperCase();
-                        e.currentTarget.parentElement!.appendChild(fallback);
-                      }}
-                    />
-                  ) : (
-                    <span className="text-white font-bold text-xs">
-                      {(organizer?.organization_name || organizer?.first_name || 'O').charAt(0).toUpperCase()}
-                    </span>
-                  )}
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center">
+                  <User className="h-4 w-4 text-white" />
                 </div>
                 <span className="hidden lg:block font-medium text-gray-700">
                   {organizer?.organization_name || 'Organization'}
