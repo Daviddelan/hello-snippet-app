@@ -408,8 +408,9 @@ const HeroCarousel = () => {
                     <p className="text-white/90 text-sm font-medium tracking-wide">Organized by</p>
                     <p className="text-white font-bold text-xl drop-shadow-lg">
                       {event.organizers?.organization_name || 
-                       `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
-                       'Event Organizer'}
+                       (event.organizers?.first_name && event.organizers?.last_name 
+                         ? `${event.organizers.first_name} ${event.organizers.last_name}` 
+                         : event.organizers?.first_name || event.organizers?.last_name || 'Event Organizer')}
                     </p>
                     {event.organizers?.is_verified && (
                       <div className="flex items-center mt-1">

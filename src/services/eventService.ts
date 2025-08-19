@@ -49,6 +49,7 @@ export class EventService {
         .select(includeOrganizerInfo ? `
           *,
           organizers (
+            id,
             organization_name,
             first_name,
             last_name,
@@ -57,6 +58,7 @@ export class EventService {
           )
         ` : '*')
         .eq('is_published', true)
+        .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
