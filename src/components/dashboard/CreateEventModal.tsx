@@ -357,16 +357,38 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Ticket Price ($) *
                       </label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        min="0"
-                        max="100000"
-                        step="0.01"
-                        className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
-                      />
+                      <div className="space-y-3">
+                        <div className="flex space-x-2">
+                          <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={handleInputChange}
+                            min="0"
+                            max="100000"
+                            step="0.01"
+                            className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors"
+                            placeholder="0.00"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, price: 0 }))}
+                            className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                              formData.price === 0
+                                ? 'bg-green-500 text-white shadow-lg'
+                                : 'bg-gray-100 text-gray-700 hover:bg-green-100 hover:text-green-700'
+                            }`}
+                          >
+                            Free
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {formData.price === 0 
+                            ? '✅ This event is free for attendees' 
+                            : 'Set to $0 or click "Free" for no-cost events'
+                          }
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
