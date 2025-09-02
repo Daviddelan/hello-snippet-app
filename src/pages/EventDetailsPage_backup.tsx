@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Lock,
   Mail,
+  User,
   Ticket,
   Loader,
 } from "lucide-react";
@@ -74,7 +75,6 @@ const EventDetailsPage = () => {
       [name]: value
     }));
   };
-
   // Handle payment process
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,67 +150,6 @@ const EventDetailsPage = () => {
       alert('Payment failed. Please try again.');
     }
   };
-
-  // Helper functions for data formatting
-  const formatEventDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatEventTime = (startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    return `${start.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    })} - ${end.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    })}`;
-  };
-
-  const isEventFree = (price: number) => price === 0;
-  const isRegistrationOpen = (event: Event) => event.is_published && event.status === 'published';
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200 flex items-center justify-center">
-        <Navigation />
-        <div className="text-center pt-32">
-          <Loader className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-4" />
-          <p className="text-lg text-gray-600">Loading event details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error || !event) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200 flex items-center justify-center">
-        <Navigation />
-        <div className="text-center pt-32 max-w-lg mx-auto px-4">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Event Not Found</h1>
-          <p className="text-gray-600 mb-6">{error || 'The event you are looking for does not exist or has been removed.'}</p>
-          <button
-            onClick={() => window.history.back()}
-            className="bg-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-purple-700 transition-colors"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200 text-gray-900 relative overflow-x-hidden font-['Inter']">
       <Navigation />
@@ -220,19 +159,17 @@ const EventDetailsPage = () => {
           {/* Event Image */}
           <div className="relative h-72 md:h-[420px] w-full overflow-hidden">
             <img
-              src={event.image_url || 'https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=1600'}
+              src={event.image}
               alt={event.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute top-4 left-4 bg-white/90 px-4 py-2 rounded-xl shadow text-purple-700 font-bold text-sm flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> {formatEventDate(event.start_date)}
-            </div>
-            <div className="absolute top-4 right-4 bg-purple-600/90 text-white px-4 py-2 rounded-xl shadow text-sm font-bold flex items-center gap-2">
+              <Calendar className="w-4 h-4" /> {event.date}
+            </div>            <div className="absolute top-4 right-4 bg-purple-600/90 text-white px-4 py-2 rounded-xl shadow text-sm font-bold flex items-center gap-2">
               <Ticket className="w-4 h-4" />{" "}
-              {isEventFree(event.price) ? "FREE" : `₵${event.price}`}
+              {event.isFree ? "FREE" : `₵${event.price}`}
             </div>
           </div>
-          
           {/* Event Details */}
           <div className="p-8 md:p-16">
             <h1 className="text-4xl md:text-5xl font-extrabold text-purple-900 mb-4 font-['Montserrat']">
@@ -240,23 +177,20 @@ const EventDetailsPage = () => {
             </h1>
             <div className="flex flex-wrap gap-6 mb-6 text-lg">
               <div className="flex items-center gap-2 text-purple-700">
-                <Clock className="w-5 h-5" /> {formatEventTime(event.start_date, event.end_date)}
+                <Clock className="w-5 h-5" /> {event.time}
               </div>
               <div className="flex items-center gap-2 text-purple-700">
                 <MapPin className="w-5 h-5" /> {event.location}
               </div>
               <div className="flex items-center gap-2 text-purple-700">
-                <Users className="w-5 h-5" /> {event.capacity} max capacity
+                <Users className="w-5 h-5" /> {event.attendees} /{" "}
+                {event.maxAttendees} attending
               </div>
-              <div className="flex items-center gap-2 text-purple-700">
-                <Star className="w-5 h-5 text-yellow-500" /> {event.category}
+              <div className="flex items-center gap-2 text-yellow-500">
+                <Star className="w-5 h-5 fill-current" /> {event.rating}
               </div>
             </div>
-            
-            {event.description && (
-              <p className="text-xl text-gray-700 mb-8">{event.description}</p>
-            )}
-            
+            <p className="text-xl text-gray-700 mb-8">{event.description}</p>
             <div className="flex items-center gap-3 mb-8">
               <img
                 src="/hellosnippet_transparent.png"
@@ -264,15 +198,12 @@ const EventDetailsPage = () => {
                 className="w-10 h-10 rounded-full border-2 border-purple-300"
               />
               <span className="text-purple-800 font-semibold">
-                Organized by HelloSnippet Partner
+                Organized by {event.organizer}
               </span>
             </div>
-            
             {/* Registration/Join Panel */}
-            {isRegistrationOpen(event) ? (
-              <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl p-8 flex flex-col gap-6 items-center max-w-lg mx-auto">
-                {/* Demo Notice */}
-                <div className="w-full bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+            {event.isRegistrationOpen ? (              <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl p-8 flex flex-col gap-6 items-center max-w-lg mx-auto">
+                {/* Demo Notice */}                <div className="w-full bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
                   <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
                     <AlertCircle className="w-5 h-5" />
                     Paystack Test Mode
@@ -290,9 +221,7 @@ const EventDetailsPage = () => {
 
                 <h2 className="text-2xl font-bold text-purple-800 mb-2">
                   Register for this Event
-                </h2>
-
-                <form onSubmit={handlePayment} className="w-full flex flex-col gap-4">
+                </h2><form onSubmit={handlePayment} className="w-full flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row gap-4 w-full">
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-purple-700 mb-1">
@@ -325,7 +254,7 @@ const EventDetailsPage = () => {
                       />
                     </div>
                   </div>
-                  {!isEventFree(event.price) && (
+                  {!event.isFree && (
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-purple-700 mb-1">
                         Payment Method
@@ -385,17 +314,14 @@ const EventDetailsPage = () => {
                       <>
                         <CheckCircle className="w-6 h-6" />
                         Registration Complete!
-                      </>
-                    ) : (
+                      </>                    ) : (
                       <>
                         <CreditCard className="w-6 h-6" />
-                        {isEventFree(event.price) ? 'Register Now' : `Pay ₵${event.price} - Register Now`}
+                        {event.isFree ? 'Register Now' : `Pay ₵${event.price} - Register Now`}
                       </>
                     )}
                   </button>
-                </form>
-                
-                <div className="flex flex-col md:flex-row gap-4 mt-6 w-full items-center justify-between text-sm">
+                </form>                <div className="flex flex-col md:flex-row gap-4 mt-6 w-full items-center justify-between text-sm">
                   <div className="flex items-center gap-2 text-green-600 font-medium">
                     <ShieldCheck className="w-4 h-4" /> Paystack Secure
                   </div>
@@ -418,11 +344,11 @@ const EventDetailsPage = () => {
                 </p>
               </div>
             )}
-            
             {/* Social Proof & Support */}
             <div className="flex flex-col md:flex-row gap-6 mt-10 items-center justify-between">
               <div className="flex items-center gap-2 text-purple-700 font-medium">
-                <Users className="w-5 h-5" /> Capacity: {event.capacity} people
+                <Users className="w-5 h-5" /> {event.attendees} people already
+                registered
               </div>
               <div className="flex items-center gap-2 text-purple-700 font-medium">
                 <Mail className="w-5 h-5" /> Need help?{" "}
@@ -437,14 +363,6 @@ const EventDetailsPage = () => {
           </div>
         </div>
       </div>
-      
-      <style>{`
-        @keyframes fade-in-up {
-          0% { opacity: 0; transform: translateY(40px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up { animation: fade-in-up 1.2s cubic-bezier(.4,0,.2,1) both; }
-      `}</style>
     </div>
   );
 };
