@@ -21,10 +21,6 @@ export class StorageService {
   private static readonly BUCKET_NAME = 'event-images';
   private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  private static readonly MIN_WIDTH = 400;
-  private static readonly MIN_HEIGHT = 300;
-  private static readonly MAX_WIDTH = 4000;
-  private static readonly MAX_HEIGHT = 4000;
 
   /**
    * Validate image file before upload
@@ -43,26 +39,12 @@ export class StorageService {
       if (file.size > this.MAX_FILE_SIZE) {
         return {
           isValid: false,
-          error: `File size too large. Maximum size: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB`
+          error: `File size too large. Maximum size: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB. The image will be compressed during cropping.`
         };
       }
 
-      // Check image dimensions
+      // Get image dimensions for metadata (but don't restrict them)
       const dimensions = await this.getImageDimensions(file);
-      
-      if (dimensions.width < this.MIN_WIDTH || dimensions.height < this.MIN_HEIGHT) {
-        return {
-          isValid: false,
-          error: `Image too small. Minimum dimensions: ${this.MIN_WIDTH}x${this.MIN_HEIGHT}px`
-        };
-      }
-
-      if (dimensions.width > this.MAX_WIDTH || dimensions.height > this.MAX_HEIGHT) {
-        return {
-          isValid: false,
-          error: `Image too large. Maximum dimensions: ${this.MAX_WIDTH}x${this.MAX_HEIGHT}px`
-        };
-      }
 
       return {
         isValid: true,
@@ -192,35 +174,40 @@ export class StorageService {
     eventId?: string
   ): Promise<UploadResult> {
     try {
-      console.log('Starting cropped image upload...', { organizerId, eventId, blobSize: blob.size });
+      console.log('🚀 Starting cropped image upload...', { 
+        organizerId, 
+        eventId, 
+        blobSize: blob.size,
+        blobSizeMB: (blob.size / (1024 * 1024)).toFixed(2),
+        blobType: blob.type
+      });
       
-      // Initialize bucket first
-      const bucketInit = await this.initializeBucket();
-      if (!bucketInit.success) {
-        console.error('Bucket initialization failed:', bucketInit.error);
+      // Get detailed storage status first
+      console.log('🔍 Running detailed storage check...');
+      const detailedStatus = await this.initializeBucketDetailed();
+      
+      if (!detailedStatus.success) {
+        console.error('❌ Storage not ready:', detailedStatus);
         return {
           success: false,
-          error: bucketInit.error || 'Failed to initialize storage'
+          error: detailedStatus.error || 'Storage not ready'
         };
       }
       
-      // Convert blob to file for validation
-      const file = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+      console.log('✅ Storage ready, proceeding with upload...');
       
-      // Validate the cropped image
-      console.log('Validating cropped image...');
-      const validation = await this.validateImage(file);
-      if (!validation.isValid) {
-        console.error('Image validation failed:', validation.error);
+      // Basic blob validation (skip file validation since it's already processed)
+      if (blob.size > this.MAX_FILE_SIZE) {
+        console.error('❌ Blob too large:', blob.size);
         return {
           success: false,
-          error: validation.error
+          error: `Processed image is too large: ${(blob.size / (1024 * 1024)).toFixed(2)}MB. Maximum allowed: ${this.MAX_FILE_SIZE / (1024 * 1024)}MB`
         };
       }
 
       // Generate unique filename
       const fileName = `${organizerId}/${eventId || 'temp'}_cropped_${Date.now()}.jpg`;
-      console.log('Uploading to path:', fileName);
+      console.log('📁 Uploading to path:', fileName);
 
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
@@ -232,7 +219,7 @@ export class StorageService {
         });
 
       if (error) {
-        console.error('Storage upload error details:', {
+        console.error('❌ Storage upload error details:', {
           message: error.message,
           statusCode: error.statusCode,
           error: error
@@ -243,20 +230,20 @@ export class StorageService {
         };
       }
 
-      console.log('Upload successful, getting public URL...');
+      console.log('✅ Upload successful, getting public URL...');
       // Get public URL
       const { data: urlData } = supabase.storage
         .from(this.BUCKET_NAME)
         .getPublicUrl(data.path);
 
-      console.log('Upload completed successfully:', urlData.publicUrl);
+      console.log('🎉 Upload completed successfully:', urlData.publicUrl);
       return {
         success: true,
         url: urlData.publicUrl
       };
 
     } catch (error) {
-      console.error('Unexpected upload error:', error);
+      console.error('❌ Unexpected upload error:', error);
       return {
         success: false,
         error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -300,56 +287,184 @@ export class StorageService {
   }
 
   /**
-   * Initialize storage bucket (call this once during setup)
+   * Test storage bucket access without listing buckets
    */
   static async initializeBucket(): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('Initializing storage bucket...');
+      console.log('🔍 Testing storage bucket access...');
       
-      // Check if bucket exists by trying to list files
-      const { data: buckets, error: listBucketsError } = await supabase.storage.listBuckets();
-      
-      if (listBucketsError) {
-        console.error('Failed to list buckets:', listBucketsError);
-        return {
-          success: false,
-          error: `Storage access failed: ${listBucketsError.message}`
-        };
-      }
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
-      
-      if (!bucketExists) {
-        console.warn(`Storage bucket '${this.BUCKET_NAME}' does not exist`);
-        return {
-          success: false,
-          error: `Storage bucket '${this.BUCKET_NAME}' not found. Please create it manually in your Supabase dashboard.`
-        };
-      }
-      
-      // Test bucket access by trying to list files
+      // Test bucket access by trying to list files (this works with anon key if policies are correct)
       const { data: files, error: listError } = await supabase.storage
         .from(this.BUCKET_NAME)
         .list('', { limit: 1 });
       
       if (listError) {
-        console.error('Storage bucket access failed:', listError);
-        
+        console.error('❌ Cannot access bucket:', listError);
         return {
           success: false,
-          error: `Storage bucket access denied. Please check RLS policies: ${listError.message}`
+          error: `Bucket access failed: ${listError.message}`
         };
       }
-
-      console.log('Storage bucket initialized successfully');
+      
+      console.log(`✅ Bucket '${this.BUCKET_NAME}' is accessible`);
+      console.log('📋 Files accessible:', files?.length || 0);
       return { success: true };
 
     } catch (error) {
-      console.error('Bucket initialization error:', error);
-      
+      console.error('❌ Bucket access test error:', error);
       return {
         success: false,
-        error: `Storage setup incomplete: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Bucket access test failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
+   * Create storage bucket with proper policies (for manual setup guidance)
+   */
+  static getBucketSetupInstructions(): string {
+    return `
+STORAGE SETUP INSTRUCTIONS:
+
+If you're seeing bucket access errors, please verify these steps:
+
+1. Go to Storage in your Supabase dashboard
+2. Ensure bucket "${this.BUCKET_NAME}" exists and is PUBLIC
+3. Go to SQL Editor and run these RLS policies:
+
+-- Enable RLS on storage.objects (if not already enabled)
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access
+CREATE POLICY "Public read access for ${this.BUCKET_NAME}"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = '${this.BUCKET_NAME}');
+
+-- Allow authenticated uploads
+CREATE POLICY "Authenticated uploads for ${this.BUCKET_NAME}"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = '${this.BUCKET_NAME}');
+
+-- Allow authenticated updates
+CREATE POLICY "Authenticated updates for ${this.BUCKET_NAME}"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = '${this.BUCKET_NAME}')
+WITH CHECK (bucket_id = '${this.BUCKET_NAME}');
+
+-- Allow authenticated deletes
+CREATE POLICY "Authenticated deletes for ${this.BUCKET_NAME}"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = '${this.BUCKET_NAME}');
+
+4. Verify your environment variables:
+   - VITE_SUPABASE_URL should point to your project
+   - VITE_SUPABASE_ANON_KEY should be the anon/public key (not service role)
+
+5. Test the setup by running the storage diagnostic in the app.
+`;
+  }
+
+  /**
+   * Detailed storage diagnostic using direct bucket access
+   */
+  static async initializeBucketDetailed(): Promise<{ 
+    success: boolean; 
+    error?: string; 
+    details?: any;
+    instructions?: string;
+  }> {
+    try {
+      console.log('🔍 Testing storage bucket access...');
+      
+      // Test direct bucket access instead of listing all buckets
+      const { data: files, error: bucketError } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .list('', { limit: 1 });
+      
+      if (bucketError) {
+        console.error('❌ Cannot access bucket:', bucketError);
+        
+        let errorMessage = `Cannot access bucket "${this.BUCKET_NAME}": ${bucketError.message}`;
+        let instructions = '';
+        
+        if (bucketError.message.includes('not found') || bucketError.message.includes('does not exist')) {
+          errorMessage = `Bucket "${this.BUCKET_NAME}" does not exist or is not accessible.`;
+          instructions = `Please create the "${this.BUCKET_NAME}" bucket in your Supabase dashboard and make it PUBLIC.`;
+        } else if (bucketError.message.includes('RLS') || bucketError.message.includes('policy')) {
+          errorMessage = `Bucket "${this.BUCKET_NAME}" exists but RLS policies are blocking access.`;
+          instructions = `Please run the SQL commands in the Storage Debugger to fix your RLS policies.`;
+        }
+        
+        return {
+          success: false,
+          error: errorMessage,
+          details: { step: 'bucket_access', error: bucketError },
+          instructions: instructions
+        };
+      }
+      
+      console.log('✅ Successfully accessed bucket');
+      console.log('📋 Files accessible:', files?.length || 0);
+      
+      // Test upload permissions (only if authenticated)
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        console.log('🔍 Testing upload permissions...');
+        const testBlob = new Blob(['test-upload'], { type: 'text/plain' });
+        const testPath = `test_${Date.now()}.txt`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from(this.BUCKET_NAME)
+          .upload(testPath, testBlob);
+        
+        if (uploadError) {
+          console.error('❌ Upload test failed:', uploadError);
+          return {
+            success: false,
+            error: `Upload test failed: ${uploadError.message}`,
+            details: { 
+              step: 'test_upload', 
+              error: uploadError,
+              authenticated: true
+            },
+            instructions: 'Please check your INSERT policy for storage.objects table.'
+          };
+        }
+        
+        console.log('✅ Upload test successful');
+        
+        // Clean up test file
+        await supabase.storage
+          .from(this.BUCKET_NAME)
+          .remove([testPath]);
+      }
+      
+      console.log('🎉 Storage validation complete - all tests passed!');
+      
+      return { 
+        success: true,
+        details: {
+          bucketName: this.BUCKET_NAME,
+          authenticated: !!user,
+          filesCount: files?.length || 0
+        }
+      };
+
+    } catch (error) {
+      console.error('❌ Storage validation failed:', error);
+      return {
+        success: false,
+        error: `Storage validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        details: {
+          step: 'unexpected_error',
+          error: error
+        },
+        instructions: 'Unexpected error occurred. Please check your Supabase configuration and network connection.'
       };
     }
   }

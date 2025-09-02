@@ -3,6 +3,7 @@ import { CheckCircle, XCircle, Database, Loader, AlertTriangle, Calendar, Image 
 import { testDatabaseConnection, testOrganizerSignupFlow } from '../utils/testDatabase';
 import { runMigrationManually, checkMigrationStatus } from '../utils/runMigration';
 import { StorageService } from '../services/storageService';
+import StorageDebugger from './StorageDebugger';
 
 const DatabaseStatus = () => {
   const [connectionStatus, setConnectionStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -12,6 +13,7 @@ const DatabaseStatus = () => {
   const [signupFlowStatus, setSignupFlowStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [isVisible, setIsVisible] = useState(true);
   const [statusMessage, setStatusMessage] = useState('Checking database status...');
+  const [showDebugger, setShowDebugger] = useState(false);
 
   useEffect(() => {
     const runTests = async () => {
@@ -53,13 +55,15 @@ const DatabaseStatus = () => {
         setStatusMessage('Checking storage setup...');
         
         // Check storage setup
-        const storageResult = await StorageService.initializeBucket();
+        const storageResult = await StorageService.initializeBucketDetailed();
         setStorageStatus(storageResult.success ? 'success' : 'error');
         
         if (!storageResult.success) {
           setStorageStatus('error');
-          console.warn('⚠️ Storage setup needed:', storageResult.error);
-          setStatusMessage('Storage bucket needs manual setup in Supabase dashboard');
+          console.warn('⚠️ Storage setup issue:', storageResult.error);
+          console.log('📋 Storage details:', storageResult.details);
+          console.log('📝 Setup instructions:', storageResult.instructions);
+          setStatusMessage(storageResult.error || 'Storage bucket needs setup');
         }
         
         setStatusMessage('Testing organizer signup flow...');
@@ -237,6 +241,22 @@ const DatabaseStatus = () => {
                 <p>Create "event-images" bucket in Supabase Dashboard → Storage → New bucket. Make it public with file upload policies.</p>
               </div>
             </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Debug Tools */}
+      <div className="mt-4">
+        <button
+          onClick={() => setShowDebugger(!showDebugger)}
+          className="text-xs text-blue-600 hover:text-blue-800 underline"
+        >
+          {showDebugger ? 'Hide' : 'Show'} Storage Debugger
+        </button>
+        
+        {showDebugger && (
+          <div className="mt-4">
+            <StorageDebugger />
           </div>
         )}
       </div>

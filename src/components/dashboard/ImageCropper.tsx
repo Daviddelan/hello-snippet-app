@@ -120,10 +120,54 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           return;
         }
 
-        console.log('Created blob for upload:', { size: blob.size, type: blob.type });
+        console.log('Initial blob created:', { size: blob.size, type: blob.type, sizeMB: (blob.size / (1024 * 1024)).toFixed(2) });
+        
+        // Check if blob is too large and compress if needed
+        let finalBlob = blob;
+        if (blob.size > 5 * 1024 * 1024) { // If larger than 5MB, compress more
+          console.log('Blob too large, compressing further...');
+          canvas.toBlob(async (compressedBlob) => {
+            if (!compressedBlob) {
+              setError('Failed to compress image');
+              setIsProcessing(false);
+              setIsUploading(false);
+              return;
+            }
+            
+            console.log('Compressed blob:', { size: compressedBlob.size, type: compressedBlob.type, sizeMB: (compressedBlob.size / (1024 * 1024)).toFixed(2) });
+            await uploadBlob(compressedBlob);
+          }, 'image/jpeg', 0.7); // Lower quality for compression
+          return;
+        }
+        
+        await uploadBlob(finalBlob);
+      }, 'image/jpeg', 0.85); // Slightly lower quality to reduce size
+
+      // Extract upload logic to reusable function
+      const uploadBlob = async (blob: Blob) => {
         setIsUploading(true);
 
         try {
+          // Get detailed storage status first
+          console.log('🔍 Checking storage status before upload...');
+          const detailedStatus = await StorageService.initializeBucketDetailed();
+          
+          if (!detailedStatus.success) {
+            console.error('❌ Storage not ready:', detailedStatus);
+            setError(`Storage not ready: ${detailedStatus.error}`);
+            
+            // Show setup instructions if available
+            if (detailedStatus.instructions) {
+              console.log('📝 Setup instructions:', detailedStatus.instructions);
+            }
+            
+            setIsUploading(false);
+            setIsProcessing(false);
+            return;
+          }
+          
+          console.log('✅ Storage ready, proceeding with upload...');
+          
           // Upload the cropped image to Supabase storage
           const uploadResult = await StorageService.uploadCroppedImage(
             blob,
@@ -155,7 +199,7 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
           setIsUploading(false);
           setIsProcessing(false);
         }
-      }, 'image/jpeg', 0.9);
+      };
 
     } catch (error) {
       const errorMsg = `Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`;
@@ -238,8 +282,19 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
                 {/* Storage Setup Notice */}
                 <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                   <p className="text-blue-800 text-sm">
-                    <strong>Note:</strong> Image upload requires the "event-images" storage bucket to be set up in your Supabase dashboard.
+                    <strong>Storage Setup Required:</strong> Please ensure the "event-images" bucket exists in your Supabase dashboard with proper upload policies.
                   </p>
+                  <details className="mt-2">
+                    <summary className="text-blue-700 text-xs cursor-pointer hover:text-blue-900">
+                      Click for setup instructions
+                    </summary>
+                    <div className="mt-2 text-blue-700 text-xs space-y-1">
+                      <p>1. Go to Storage in your Supabase dashboard</p>
+                      <p>2. Create bucket named "event-images" (make it PUBLIC)</p>
+                      <p>3. Add RLS policies for authenticated uploads</p>
+                      <p>4. Ensure your API keys have storage permissions</p>
+                    </div>
+                  </details>
                 </div>
                 
                 <label className="inline-flex items-center bg-primary-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-600 transition-colors cursor-pointer">

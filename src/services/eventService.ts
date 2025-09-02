@@ -39,42 +39,79 @@ export class EventService {
   /**
    * Get published events for public display
    */
-  static async getPublishedEvents(limit: number = 10) {
+  static async getPublishedEvents(limit: number = 10, includeOrganizerInfo: boolean = true) {
     try {
+      console.log('🔍 EventService: Fetching published events...', { limit, includeOrganizerInfo });
+      
+      // Try to fetch published events with proper filtering
       const { data, error } = await supabase
         .from('events')
-        .select(`
+        .select(includeOrganizerInfo ? `
           *,
           organizers (
+            id,
             organization_name,
             first_name,
-            last_name
+            last_name,
+            is_verified,
+            avatar_url
           )
-        `)
+        ` : '*')
         .eq('is_published', true)
+        .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
+      console.log('📊 EventService: Query result:', { data: data?.length, error });
+      
       if (error) {
+        console.error('❌ EventService: Full error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+        
         // If table doesn't exist, return empty array instead of error
         if (error.code === '42P01') {
-          console.warn('Events table does not exist yet. Please run the database migration.');
+          console.warn('❌ Events table does not exist yet. Please run the database migration.');
           return {
             success: true,
+            message: 'Events table not found - database migration needed',
             events: []
           };
         }
+        
+        // If it's an RLS error, provide specific guidance
+        if (error.code === '42501' || error.message.includes('RLS') || error.message.includes('policy')) {
+          console.warn('❌ RLS policy blocking access to events');
+          return {
+            success: false,
+            message: 'RLS policy blocking access - need to fix policies',
+            error: 'Row Level Security is blocking access to published events. Please check your RLS policies.',
+            events: []
+          };
+        }
+        
+        console.error('❌ EventService: Database error:', error);
         throw new Error(`Published events fetch error: ${error.message}`);
       }
 
+      console.log('✅ EventService: Successfully fetched', data?.length || 0, 'events');
+      if (data && data.length > 0) {
+        console.log('📋 Events found:', data.map(e => `"${e.title}" (status: ${e.status}, published: ${e.is_published})`));
+      }
+      
       return {
         success: true,
+        message: `Found ${data?.length || 0} published events`,
         events: data || []
       };
     } catch (error) {
-      console.error('Published events fetch error:', error);
+      console.error('❌ EventService: Published events fetch error:', error);
       return {
         success: false,
+        message: 'Failed to load published events',
         error: error instanceof Error ? error.message : 'An unexpected error occurred'
       };
     }
