@@ -329,7 +329,7 @@ const HeroCarousel = () => {
               <div className="max-w-5xl mx-auto">
                 {/* Event Category Badge */}
                 <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-4 py-2 text-white mb-6">
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-1" />
                   <span className="text-sm font-medium">{event.category}</span>
                 </div>
 
@@ -394,10 +394,10 @@ const HeroCarousel = () => {
                   </div>
 
                   <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-4 py-3 text-white">
-                    <DollarSign className="w-5 h-5" />
+                    
                     <div className="text-left">
                       <p className="text-sm font-medium">
-                        {event.price === 0 ? 'FREE' : `$${event.price.toLocaleString()}`}
+                        {event.price === 0 ? 'FREE' : `GHS${event.price.toLocaleString()}`}
                       </p>
                       <p className="text-xs text-white/80">
                         {event.price === 0 ? 'No Cost' : 'Per Ticket'}

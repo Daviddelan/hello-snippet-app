@@ -38,8 +38,7 @@ const FeaturedEvents = () => {
         } else {
           console.log('✅ FeaturedEvents: Successfully loaded events from database');
           console.log('📊 FeaturedEvents: Raw data:', data);
-          
-          // Transform database events to match our component structure
+            // Transform database events to match our component structure
           const transformedEvents = data.map((event) => ({
             id: event.id,
             title: event.title,
@@ -59,7 +58,6 @@ const FeaturedEvents = () => {
             })}`,
             location: event.venue_name || event.location,
             city: event.location,
-            attendees: Math.floor(event.capacity * 0.7), // Mock attendance
             maxAttendees: event.capacity,
             rating: 4.8,
             price: event.price,
@@ -73,10 +71,9 @@ const FeaturedEvents = () => {
           setEvents(transformedEvents);
           
           console.log('📋 FeaturedEvents: Final events to display:', transformedEvents);
-        }
-      } catch (error) {
+        }      } catch (error) {
         console.error('💥 FeaturedEvents: Unexpected error loading events:', error);
-        setEvents(featuredEvents);
+        setEvents([]);
       } finally {
         console.log('🏁 FeaturedEvents: Loading completed, setting isLoading to false');
         setIsLoading(false);

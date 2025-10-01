@@ -4,10 +4,7 @@ import {
   Calendar, 
   User, 
   Mail, 
-  Lock, 
   Building, 
-  Phone, 
-  MapPin, 
   ArrowRight,
   Check,
   Eye,
@@ -108,16 +105,15 @@ const SignUpOrganizerPage = () => {
 
     try {
       console.log('Starting organizer signup process...');
-      
-      // Prepare data for submission
+        // Prepare data for submission
       const signupData: OrganizerSignupData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         organizationName: formData.organizationName.trim(),
-        phone: formData.phone.trim() || undefined,
-        location: formData.location.trim() || undefined,
+        phone: formData.phone?.trim() || undefined,
+        location: formData.location?.trim() || undefined,
         eventTypes: formData.eventTypes
       };
 
