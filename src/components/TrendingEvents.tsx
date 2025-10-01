@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, Users, Star } from "lucide-react";
+import { Calendar, MapPin, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EventService } from "../services/eventService";
 
@@ -128,9 +128,7 @@ const TrendingEvents = () => {
                   <div className="p-6">
                     <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                       {event.title}
-                    </h3>
-
-                    <div className="space-y-2 mb-4">
+                    </h3>                    <div className="space-y-2 mb-4">
                       <div className="flex items-center text-gray-600">
                         <Calendar className="w-4 h-4 mr-2" />
                         <span className="text-sm">{event.date}</span>
@@ -143,12 +141,6 @@ const TrendingEvents = () => {
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className="flex items-center text-gray-600">
-                          <Users className="w-4 h-4 mr-2" />
-                          <span className="text-sm">
-                            {event.attendees === 0 ? "0" : event.attendees.toLocaleString()} registered
-                          </span>
-                        </div>
                         <div className="flex items-center text-yellow-500">
                           <Star className="w-4 h-4 mr-1 fill-current" />
                           <span className="text-sm font-semibold">

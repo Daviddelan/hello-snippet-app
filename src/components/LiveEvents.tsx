@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { MapPin, Users, Clock, Zap, ArrowRight } from "lucide-react";
+import { MapPin, Clock, Zap, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EventService } from "../services/eventService";
 
@@ -40,9 +40,7 @@ const LiveEvents = () => {
                 status = 'live';
               } else if (diffFromStart <= 2 * 60 * 60 * 1000) { // Within 2 hours
                 status = 'starting-soon';
-              }
-
-              return {
+              }              return {
                 id: event.id,
                 title: event.title,
                 organizer: event.organizers?.organization_name || 
@@ -50,8 +48,6 @@ const LiveEvents = () => {
                           'Event Organizer',
                 location: event.location,
                 startTime: startTime,
-                attendees: event.registration_count || 0, // Real registration count
-                maxAttendees: event.capacity,
                 status: status,
                 image: event.image_url || "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
               };
@@ -189,37 +185,16 @@ const LiveEvents = () => {
 
                     <p className="text-sm text-gray-600 mb-3">
                       {event.organizer}
-                    </p>
-
-                    <div className="space-y-2 mb-4">
+                    </p>                    <div className="space-y-2 mb-6">
                       <div className="flex items-center text-gray-600">
                         <MapPin className="w-4 h-4 mr-2" />
                         <span className="text-sm">{event.location}</span>
                       </div>
                       <div className="flex items-center text-gray-600">
-                        <Users className="w-4 h-4 mr-2" />
+                        <Clock className="w-4 h-4 mr-2" />
                         <span className="text-sm">
-                          {event.attendees === 0 ? "0" : event.attendees} registered
+                          {event.startTime.toLocaleString()}
                         </span>
-                      </div>
-                    </div>
-
-                    {/* Attendance Progress */}
-                    <div className="mb-4">
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className={`h-1.5 rounded-full transition-all duration-300 ${
-                            event.status === "live"
-                              ? "bg-red-500"
-                              : "bg-orange-500"
-                          }`}
-                          style={{
-                            width: `${Math.min(
-                              (event.attendees / event.maxAttendees) * 100,
-                              100
-                            )}%`,
-                          }}
-                        ></div>
                       </div>
                     </div>
 

@@ -40,7 +40,7 @@ const FeaturedEvents = () => {
           console.log('📊 FeaturedEvents: Raw data:', data);
           
           // Transform database events to match our component structure
-          const transformedEvents = data.map((event, index) => ({
+          const transformedEvents = data.map((event) => ({
             id: event.id,
             title: event.title,
             organizer: event.organizers?.organization_name || 'Event Organizer',
@@ -230,8 +230,7 @@ const FeaturedEvents = () => {
                 </div>
 
                 {/* Event Details */}
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
+                <div className="p-6">                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <div className="flex items-center text-yellow-500">
                         <Star className="w-4 h-4 fill-current" />
@@ -239,10 +238,6 @@ const FeaturedEvents = () => {
                           {event.rating}
                         </span>
                       </div>
-                      <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
-                      <span className="text-sm text-gray-500">
-                        {event.attendees} attending
-                      </span>
                     </div>
                   </div>
 
