@@ -15,10 +15,10 @@ const Navigation = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Set scrolled state for styling
       setIsScrolled(currentScrollY > 20);
-      
+
       // Hide/show navbar based on scroll direction
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         // Scrolling down & past 100px - hide navbar
@@ -27,7 +27,7 @@ const Navigation = () => {
         // Scrolling up or at top - show navbar
         setIsVisible(true);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -38,31 +38,45 @@ const Navigation = () => {
   useEffect(() => {
     // Check initial auth state
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         // Also check if they have a complete organizer profile
         try {
-          const organizerProfile = await OrganizerService.getOrganizerProfile(user.id);
+          const organizerProfile = await OrganizerService.getOrganizerProfile(
+            user.id
+          );
           setIsAuthenticated(!!organizerProfile?.profile_completed);
         } catch (error) {
-          console.error('Error checking organizer profile in navigation:', error);
+          console.error(
+            "Error checking organizer profile in navigation:",
+            error
+          );
           setIsAuthenticated(!!user);
         }
       } else {
         setIsAuthenticated(false);
       }
     };
-    
+
     checkAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         try {
-          const organizerProfile = await OrganizerService.getOrganizerProfile(session.user.id);
+          const organizerProfile = await OrganizerService.getOrganizerProfile(
+            session.user.id
+          );
           setIsAuthenticated(!!organizerProfile?.profile_completed);
         } catch (error) {
-          console.error('Error checking organizer profile in navigation:', error);
+          console.error(
+            "Error checking organizer profile in navigation:",
+            error
+          );
           setIsAuthenticated(!!session);
         }
       } else {
@@ -74,7 +88,7 @@ const Navigation = () => {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "/" },
+    { name: "Home", href: "/HomePage" },
     { name: "Discover Events", href: "/discover" },
     { name: "Create Event", href: "/create-event" }, // updated route
     { name: "About", href: "/about" },
@@ -88,12 +102,12 @@ const Navigation = () => {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 flex justify-center items-center transition-all duration-300 pointer-events-none ${
-        isVisible ? 'translate-y-0' : '-translate-y-full'
+        isVisible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
       {/* Glassmorphic nav background oval - smaller, more subtle */}
       <div
-        className={`absolute top-1 left-1/2 -translate-x-1/2 w-[48vw] max-w-3xl h-[42px] md:h-[60px] rounded-[1.7rem] bg-white/60 backdrop-blur-2xl shadow-xl border border-purple-200/60 pointer-events-auto transition-all duration-300 ${
+        className={`absolute top-1 left-1/2 -translate-x-1/2 w-[50vw] max-w-3xl h-[42px] md:h-[54px] rounded-[1.2rem] bg-white/60 backdrop-blur-2xl shadow-xl border border-purple-200/60 pointer-events-auto transition-all duration-300 ${
           isScrolled ? "bg-white/80 border-purple-300/80 shadow-lg" : ""
         }`}
         style={{ zIndex: 1 }}

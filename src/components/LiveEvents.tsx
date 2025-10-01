@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, MapPin, Users, Clock, Zap, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, Users, Clock, Zap, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { EventService } from "../services/eventService";
 
 const LiveEvents = () => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -13,44 +16,64 @@ const LiveEvents = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const liveEvents = [
-    {
-      id: 1,
-      title: "Despite Automobile Museum Inauguration",
-      organizer: "Despite Group of Companies",
-      location: "Virtual Event",
-      startTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours from now
-      attendees: 847,
-      maxAttendees: 1000,
-      status: "starting-soon",
-      image:
-        "https://i.ibb.co/993ks9hv/image-4.webp",
-    },
-    {
-      id: 2,
-      title: "Edenic Worship Experience '25",
-      organizer: "ICGC Calvary Temple",
-      location: "Spintex Road, Accra",
-      startTime: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes from now
-      attendees: 234,
-      maxAttendees: 300,
-      status: "starting-soon",
-      image:
-        "https://i.ibb.co/LwMKb00/image-3.webp",
-    },
-    {
-      id: 3,
-      title: "Behold Your God '25",
-      organizer: "The Worshipping Warriors & Korle-Bu Christian Network",
-      location: "Accra, Ghana",
-      startTime: new Date(Date.now() - 30 * 60 * 1000), // Started 30 minutes ago
-      attendees: 45,
-      maxAttendees: 50,
-      status: "live",
-      image:
-        "https://i.ibb.co/JRzg5ZHz/image-2.webp",
-    },
-  ];
+  // Load real events from database
+  useEffect(() => {
+    const loadEvents = async () => {
+      try {
+        const result = await EventService.getPublishedEventsWithCounts(10, true);
+        
+        if (result.success && result.events && result.events.length > 0) {
+          const now = new Date();
+          
+          // Filter and transform events happening today or starting soon
+          const liveAndUpcomingEvents = result.events
+            .map(event => {
+              const startTime = new Date(event.start_date);
+              const endTime = new Date(event.end_date);
+              const diffFromStart = startTime.getTime() - now.getTime();
+              const diffFromEnd = endTime.getTime() - now.getTime();
+              
+              let status = 'upcoming';
+              if (diffFromEnd < 0) {
+                status = 'ended';
+              } else if (diffFromStart <= 0 && diffFromEnd > 0) {
+                status = 'live';
+              } else if (diffFromStart <= 2 * 60 * 60 * 1000) { // Within 2 hours
+                status = 'starting-soon';
+              }
+
+              return {
+                id: event.id,
+                title: event.title,
+                organizer: event.organizers?.organization_name || 
+                          `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
+                          'Event Organizer',
+                location: event.location,
+                startTime: startTime,
+                attendees: event.registration_count || 0, // Real registration count
+                maxAttendees: event.capacity,
+                status: status,
+                image: event.image_url || "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
+              };
+            })
+            .filter(event => event.status === 'live' || event.status === 'starting-soon')
+            .slice(0, 6); // Limit to 6 events
+
+          setEvents(liveAndUpcomingEvents);
+        } else {
+          console.log('No live events found');
+          setEvents([]);
+        }
+      } catch (error) {
+        console.error('Error loading live events:', error);
+        setEvents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadEvents();
+  }, []);
 
   const getTimeUntilStart = (startTime: Date) => {
     const diff = startTime.getTime() - currentTime.getTime();
@@ -104,92 +127,119 @@ const LiveEvents = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {liveEvents.map((event) => (
-            <div key={event.id} className="group relative">
-              <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                {/* Event Image */}
-                <div className="relative h-40 overflow-hidden">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+          </div>
+        ) : events.length === 0 ? (
+          /* Empty State */
+          <div className="text-center py-20">
+            <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No Live Events Right Now
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Check back later for events that are live or starting soon
+            </p>
+            <button
+              onClick={() => navigate('/discover')}
+              className="inline-flex items-center text-primary-500 font-semibold hover:text-secondary-500 transition-colors"
+            >
+              Browse All Events
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </button>
+          </div>
+        ) : (
+          /* Events Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <div key={event.id} className="group relative">
+                <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  {/* Event Image */}
+                  <div className="relative h-40 overflow-hidden">
+                    <img
+                      src={event.image}
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
 
-                  {/* Live Status Badge */}
-                  <div
-                    className={`absolute top-3 left-3 ${getStatusColor(
-                      event.status
-                    )} text-white px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1`}
-                  >
-                    {event.status === "live" && <Zap className="w-3 h-3" />}
-                    <span>{getStatusText(event.status)}</span>
-                  </div>
-
-                  {/* Time Badge */}
-                  <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    {getTimeUntilStart(event.startTime)}
-                  </div>
-                </div>
-
-                {/* Event Details */}
-                <div className="p-5">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-                    {event.title}
-                  </h3>
-
-                  <p className="text-sm text-gray-600 mb-3">
-                    {event.organizer}
-                  </p>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      <span className="text-sm">{event.location}</span>
+                    {/* Live Status Badge */}
+                    <div
+                      className={`absolute top-3 left-3 ${getStatusColor(
+                        event.status
+                      )} text-white px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1`}
+                    >
+                      {event.status === "live" && <Zap className="w-3 h-3" />}
+                      <span>{getStatusText(event.status)}</span>
                     </div>
-                    <div className="flex items-center text-gray-600">
-                      <Users className="w-4 h-4 mr-2" />
-                      <span className="text-sm">
-                        {event.attendees} attending
-                      </span>
-                    </div>
-                  </div>
 
-                  {/* Attendance Progress */}
-                  <div className="mb-4">
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
-                      <div
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          event.status === "live"
-                            ? "bg-red-500"
-                            : "bg-orange-500"
-                        }`}
-                        style={{
-                          width: `${
-                            (event.attendees / event.maxAttendees) * 100
-                          }%`,
-                        }}
-                      ></div>
+                    {/* Time Badge */}
+                    <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1 rounded-full text-xs font-medium">
+                      {getTimeUntilStart(event.startTime)}
                     </div>
                   </div>
 
-                  {/* CTA Button */}
-                  <button
-                    className={`w-full text-white py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
-                      event.status === "live"
-                        ? "bg-red-500 hover:bg-red-600"
-                        : "bg-orange-500 hover:bg-orange-600"
-                    }`}
-                    onClick={() => navigate(`/event/${event.id}`)}
-                  >
-                    {event.status === "live" ? "Join Now" : "Get Ready"}
-                  </button>
+                  {/* Event Details */}
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+                      {event.title}
+                    </h3>
+
+                    <p className="text-sm text-gray-600 mb-3">
+                      {event.organizer}
+                    </p>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center text-gray-600">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        <span className="text-sm">{event.location}</span>
+                      </div>
+                      <div className="flex items-center text-gray-600">
+                        <Users className="w-4 h-4 mr-2" />
+                        <span className="text-sm">
+                          {event.attendees === 0 ? "0" : event.attendees} registered
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Attendance Progress */}
+                    <div className="mb-4">
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            event.status === "live"
+                              ? "bg-red-500"
+                              : "bg-orange-500"
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              (event.attendees / event.maxAttendees) * 100,
+                              100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* CTA Button */}
+                    <button
+                      className={`w-full text-white py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 transform hover:scale-105 ${
+                        event.status === "live"
+                          ? "bg-red-500 hover:bg-red-600"
+                          : "bg-orange-500 hover:bg-orange-600"
+                      }`}
+                      onClick={() => navigate(`/event/${event.id}`)}
+                    >
+                      {event.status === "live" ? "Join Now" : "Get Ready"}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -1,22 +1,38 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import { Calendar, MapPin, Users, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { EventService } from "../services/eventService";
+import { supabase } from "../lib/supabase";
 
 const TrendingEvents = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   // Load real events from database
   useEffect(() => {
     const loadEvents = async () => {
       try {
-        const result = await EventService.getPublishedEventsWithCounts(8, true);
-        
-        if (result.success && result.events && result.events.length > 0) {
+        const { data, error } = await supabase
+          .from('events')
+          .select(`
+            *,
+            organizers (
+              organization_name,
+              first_name,
+              last_name
+            )
+          `)
+          .eq('is_published', true)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(8);
+
+        if (error) {
+          console.error('Error loading trending events:', error);
+          setEvents([]);
+        } else {
           // Transform database events
-          const transformedEvents = result.events.map(event => ({
+          const transformedEvents = data.map(event => ({
             id: event.id,
             title: event.title,
             date: new Date(event.start_date).toLocaleDateString('en-US', { 
@@ -25,16 +41,16 @@ const TrendingEvents = () => {
               year: 'numeric' 
             }),
             location: event.location,
-            attendees: event.registration_count || 0, // Real registration count
-            rating: 4.5 + Math.random() * 0.5, // Random rating between 4.5-5.0
-            price: event.price === 0 ? "Free" : `GH₵${event.price}`,
+            attendees: Math.floor(event.capacity * 0.7), // Estimated attendance
+            rating: 4.5 + Math.random() * 0.5, // Rating between 4.5-5.0
+            price: event.price === 0 ? "Free" : `GH₵${(event.price / 100).toFixed(2)}`,
             image: event.image_url || "https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=400",
+            organizer_name: event.organizers?.organization_name || 
+                           `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
+                           'Unknown Organizer'
           }));
 
           setEvents(transformedEvents);
-        } else {
-          console.log('No trending events found');
-          setEvents([]);
         }
       } catch (error) {
         console.error('Error loading trending events:', error);
@@ -42,11 +58,8 @@ const TrendingEvents = () => {
       } finally {
         setIsLoading(false);
       }
-    };
-
-    loadEvents();
+    };    loadEvents();
   }, []);
-
   if (isLoading) {
     return (
       <div className="py-20 bg-gray-50 flex items-center justify-center">
@@ -92,10 +105,7 @@ const TrendingEvents = () => {
               Don't miss out on the hottest events happening near you
             </p>
           </div>
-          <button 
-            onClick={() => navigate('/discover')}
-            className="hidden sm:inline-flex items-center text-primary-500 font-semibold hover:text-secondary-500 transition-colors"
-          >
+          <button className="hidden sm:inline-flex items-center text-primary-500 font-semibold hover:text-secondary-500 transition-colors">
             View All Events
             <Calendar className="w-4 h-4 ml-2" />
           </button>
@@ -146,13 +156,13 @@ const TrendingEvents = () => {
                         <div className="flex items-center text-gray-600">
                           <Users className="w-4 h-4 mr-2" />
                           <span className="text-sm">
-                            {event.attendees === 0 ? "0" : event.attendees.toLocaleString()} registered
+                            {event.attendees.toLocaleString()}
                           </span>
                         </div>
                         <div className="flex items-center text-yellow-500">
                           <Star className="w-4 h-4 mr-1 fill-current" />
                           <span className="text-sm font-semibold">
-                            {event.rating.toFixed(1)}
+                            {event.rating}
                           </span>
                         </div>
                       </div>
@@ -174,10 +184,7 @@ const TrendingEvents = () => {
 
         {/* Mobile View All Button */}
         <div className="text-center mt-8 sm:hidden">
-          <button 
-            onClick={() => navigate('/discover')}
-            className="inline-flex items-center text-primary-500 font-semibold hover:text-secondary-500 transition-colors"
-          >
+          <button className="inline-flex items-center text-primary-500 font-semibold hover:text-secondary-500 transition-colors">
             View All Events
             <Calendar className="w-4 h-4 ml-2" />
           </button>

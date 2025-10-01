@@ -200,7 +200,7 @@ const SignInPage = () => {
                 <span className="text-sm font-medium text-primary-700">Welcome Back</span>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Sign In to HelloSnippet
+                Sign in as an Organizer
               </h1>
               <p className="text-gray-600">
                 Access your account and manage your events

@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import { Calendar, MapPin, Users, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";

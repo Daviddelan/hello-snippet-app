@@ -1,6 +1,5 @@
-import React from "react";
 import { useState, useEffect } from "react";
-import { Calendar, MapPin, Users, Star, Clock, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, Star, Clock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
@@ -8,11 +7,12 @@ const FeaturedEvents = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   // Load real events from database
   useEffect(() => {
     const loadEvents = async () => {
       try {
+        console.log('🔄 FeaturedEvents: Starting to load events...');
+        
         const { data, error } = await supabase
           .from('events')
           .select(`
@@ -25,13 +25,20 @@ const FeaturedEvents = () => {
           `)
           .eq('is_published', true)
           .order('created_at', { ascending: false })
-          .limit(3);
-
-        if (error) {
-          console.error('Error loading events:', error);
-          // Fall back to mock data if database isn't set up
-          setEvents(featuredEvents);
+          .limit(3);        if (error) {
+          console.error('❌ FeaturedEvents: Error loading events:', error);
+          console.log('📋 FeaturedEvents: Error details:', {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          });
+          // Don't fall back to mock data - just show empty state
+          setEvents([]);
         } else {
+          console.log('✅ FeaturedEvents: Successfully loaded events from database');
+          console.log('📊 FeaturedEvents: Raw data:', data);
+          
           // Transform database events to match our component structure
           const transformedEvents = data.map((event, index) => ({
             id: event.id,
@@ -62,14 +69,16 @@ const FeaturedEvents = () => {
             tags: [event.category, "Featured", event.price === 0 ? "Free" : "Paid"]
           }));
 
-          // Mix real events with mock events if we don't have enough
-          const allEvents = [...transformedEvents, ...featuredEvents.slice(transformedEvents.length)];
-          setEvents(allEvents.slice(0, 3)); // Always show exactly 3 events
+          console.log('🔄 FeaturedEvents: Transformed events:', transformedEvents);
+          setEvents(transformedEvents);
+          
+          console.log('📋 FeaturedEvents: Final events to display:', transformedEvents);
         }
       } catch (error) {
-        console.error('Error loading events:', error);
+        console.error('💥 FeaturedEvents: Unexpected error loading events:', error);
         setEvents(featuredEvents);
       } finally {
+        console.log('🏁 FeaturedEvents: Loading completed, setting isLoading to false');
         setIsLoading(false);
       }
     };
@@ -262,7 +271,7 @@ const FeaturedEvents = () => {
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {event.tags.slice(0, 3).map((tag, tagIndex) => (
+                    {event.tags.slice(0, 3).map((tag: string, tagIndex: number) => (
                       <span
                         key={tagIndex}
                         className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"

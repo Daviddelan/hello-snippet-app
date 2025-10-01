@@ -1,4 +1,3 @@
-import React from "react";
 import Navigation from "../components/Navigation";
 import HeroCarousel from "../components/HeroCarousel";
 import SearchSection from "../components/SearchSection";

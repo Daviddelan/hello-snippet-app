@@ -18,19 +18,15 @@ import {
   TreeDeciduous,
   Smile,
   TrendingUp,
-  ArrowUpCircle,
-  PartyPopper,
+  ArrowUpCircle,  PartyPopper,
   Waves,
   Users,
   Star,
   Globe2,
   HeartHandshake,
   Ticket,
-  BadgeCheck,
   HelpCircle,
 } from "lucide-react";
-import Navigation from "../components/Navigation";
-import SignInPage from "./SignInPage";
 
 // Add Google Fonts for premium headings
 const fontLink = document.createElement("link");
@@ -172,7 +168,7 @@ const LandingPage = () => {
           href="/signin"
           className="ml-4 md:ml-8 bg-gradient-to-r from-purple-500 to-purple-700 text-white px-5 py-2.5 md:px-7 md:py-3 rounded-xl font-bold shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-200 text-base md:text-lg border-2 border-purple-400 animate-fade-in-up"
         >
-          Get Started
+          Sign in as an Organizer
         </a>
       </nav>
       {/* Hero Section with animated confetti/particles and purple clock accent */}
@@ -205,11 +201,11 @@ const LandingPage = () => {
           className="absolute bottom-32 right-60 text-purple-300 animate-float-slow opacity-30 z-10"
         />
         {/* Large, bold, gradient headline */}
-        <h1 className="w-full max-w-4xl mx-auto text-3xl md:text-5xl lg:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in mb-6 px-2 md:px-0 leading-tight">
-          Plan events and book tickets —{" "}
+        <h1 className="w-full max-w-4xl mx-auto text-3xl md:text-5xl lg:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-purple-700 to-purple-900 drop-shadow-2xl font-['Montserrat'] animate-fade-in mb-6 px-2 md:px-0 leading-tight">
+          Plan events and book tickets{" "}
           <span className="whitespace-nowrap">the smart way.</span>
         </h1>
-        <p className="w-full max-w-2xl mx-auto text-lg md:text-2xl text-gray-700 font-['Inter'] animate-fade-in delay-100 mb-8 px-2 md:px-0">
+        <p className="w-full max-w-2xl mx-auto text-lg md:text-xl text-gray-700 font-['Inter'] animate-fade-in delay-100 mb-8 px-2 md:px-0">
           Welcome to Hello Snippet: the trusted, easy-to-use ticketing platform
           that makes event planning and attending smoother, safer, and smarter.
         </p>
@@ -218,7 +214,7 @@ const LandingPage = () => {
             href="/signin"
             className="bg-gradient-to-r from-purple-500 to-purple-700 text-white px-8 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 hover:shadow-2xl transition-all duration-200 text-lg border-2 border-purple-400 animate-fade-in-up"
           >
-            Start Now
+            Sign in as an Organizer
           </a>
           <a
             href="/HomePage"
@@ -229,7 +225,7 @@ const LandingPage = () => {
         </div>
         {/* Testimonial and trusted-by badge, now moved to top right on large screens and below buttons on mobile */}
         <div className="w-full flex flex-col md:flex-row md:justify-end md:items-start items-center gap-6 md:gap-8 px-2 md:px-10 mt-2 md:mt-0">
-          <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-6 py-4 flex flex-col items-center max-w-xs animate-fade-in-up md:mt-0 mt-6 text-base md:text-lg">
+          {/* <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl px-6 py-4 flex flex-col items-center max-w-xs animate-fade-in-up md:mt-0 mt-6 text-base md:text-lg">
             <div className="text-purple-600 text-4xl mb-2">
               <Star size={32} className="inline-block text-yellow-400 mr-1" />“
             </div>
@@ -240,17 +236,17 @@ const LandingPage = () => {
             <span className="text-purple-800 font-semibold">
               — Happy Organizer
             </span>
-          </div>
+          </div> */}
           <div className="flex flex-col items-center animate-fade-in-up">
             <img
               src="/icon500x500.png"
               alt="Trusted by"
               className="w-14 h-14 md:w-20 md:h-20 rounded-full border-2 border-purple-300 mb-2 shadow-xl"
             />
-            <span className="text-purple-800 font-bold text-base md:text-lg flex items-center gap-2">
+            {/* <span className="text-purple-800 font-bold text-base md:text-lg flex items-center gap-2">
               <BadgeCheck className="text-purple-500" size={22} />
               Trusted by 1,000+ organizers
-            </span>
+            </span> */}
           </div>
         </div>
       </section>
@@ -315,8 +311,8 @@ const LandingPage = () => {
             </FeatureCard>
           </div>
           <p className="text-2xl font-semibold text-purple-700 max-w-2xl mx-auto font-['Inter']">
-            We built Hello Snippet to change that — and to make event
-            experiences feel easy again.
+            We built Hello Snippet to change that, and to make event experiences
+            feel easy again.
           </p>
         </div>
       </section>
@@ -355,7 +351,7 @@ const LandingPage = () => {
               d="M0,32L48,53.3C96,75,192,117,288,117.3C384,117,480,75,576,74.7C672,75,768,117,864,133.3C960,149,1056,139,1152,117.3C1248,96,1344,64,1392,48L1440,32L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
             ></path>
           </svg>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-12 w-full z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 w-full z-10">
             <FeatureCard
               icon={<ShieldCheck size={48} className="text-purple-600" />}
               title="Verified Events Only"
@@ -377,7 +373,7 @@ const LandingPage = () => {
               title="Real-Time Support"
               delay={200}
             >
-              Talk to humans, not helpdesk robots. We’re here for you — always.
+              Talk to humans, not helpdesk robots. We’re here for you, always.
             </FeatureCard>
             <FeatureCard
               icon={<Sparkles size={48} className="text-purple-600" />}
@@ -392,7 +388,7 @@ const LandingPage = () => {
               title="Fast Payouts for Organizers"
               delay={400}
             >
-              Track sales. Get paid. Grow your audience — without the headaches.
+              Track sales. Get paid. Grow your audience without the headaches.
             </FeatureCard>
             <FeatureCard
               icon={<Leaf size={48} className="text-purple-600" />}
@@ -481,16 +477,12 @@ const LandingPage = () => {
                 title="Host & Grow"
                 delay={200}
               >
-                Focus on your event — we’ll handle the tech, support, and
+                Focus on your event, we’ll handle the tech, support, and
                 ticketing.
               </FeatureCard>
             </div>
           </div>
-          <p className="mt-14 text-center text-2xl text-purple-700 font-semibold max-w-2xl mx-auto font-['Inter']">
-            Hello Snippet is built for speed, clarity, and peace of mind.
-            <br />
-            No tech skills needed. No delays. Just pure event power.
-          </p>
+          
         </div>
       </section>
       {/* Section 5: Toolkit as Cards */}
@@ -601,10 +593,10 @@ const LandingPage = () => {
               More confidence, more clarity, more growth
             </FeatureCard>
           </div>
-          <p className="mb-4 text-xl font-['Inter']">
+          {/* <p className="mb-4 text-xl font-['Inter']">
             And together, we’re building something bigger — events that are
             easy, safe, and sustainable.
-          </p>
+          </p> */}
         </div>
       </section>
       {/* Final CTA */}
@@ -614,7 +606,7 @@ const LandingPage = () => {
             Join the smarter way to host and attend events.
           </h2>
           <p className="mb-10 text-2xl font-medium font-['Inter']">
-            Start your event journey today — backed by a team that actually
+            Start your event journey today, backed by a team that actually
             cares.
           </p>
           <a
@@ -629,7 +621,7 @@ const LandingPage = () => {
       <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/70 backdrop-blur-2xl border-t border-purple-200 shadow-2xl py-4 px-8 flex flex-col md:flex-row items-center justify-between gap-4 animate-fade-in-up">
         <div className="flex items-center gap-2 text-purple-700 font-semibold text-lg">
           <img
-            src="/hellosnippet_transparent.png"
+            src="/icon500x500.png"
             alt="Hello Snippet Logo"
             className="w-8 h-8 rounded-full border border-purple-300"
           />

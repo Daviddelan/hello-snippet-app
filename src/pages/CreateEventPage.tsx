@@ -23,6 +23,7 @@ import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import ImageCropper from "../components/dashboard/ImageCropper";
 import LocationPicker from "../components/dashboard/LocationPicker";
+import GoogleMapsDiagnostic from "../components/GoogleMapsDiagnostic";
 import { EventService } from "../services/eventService";
 import { ValidationService } from "../services/validationService";
 import { supabase } from "../lib/supabase";
@@ -527,7 +528,7 @@ const CreateEventPage = () => {
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-colors"
                             placeholder="Describe your event..."
                           />
-                          <p className="text-xs text-gray-500 mt-1">{formData.description.length}/5000 characters</p>
+                          <p className="text-xs text-gray-500 mt-1">{(formData.description || '').length}/5000 characters</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -669,9 +670,13 @@ const CreateEventPage = () => {
                                 value={formData.venue_name}
                                 onChange={handleInputChange}
                                 maxLength={200}
-                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-colors"
-                                placeholder="Venue or building name"
+                                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-colors"                                placeholder="Venue or building name"
                               />
+                            </div>
+                            
+                            {/* Google Maps Diagnostic */}
+                            <div className="mt-6">
+                              <GoogleMapsDiagnostic />
                             </div>
                           </>
                         )}

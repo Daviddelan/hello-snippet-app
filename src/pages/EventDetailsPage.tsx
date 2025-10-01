@@ -18,15 +18,16 @@ import {
 import Navigation from "../components/Navigation";
 import { PaystackService, type PaystackTransaction } from "../services/paystackService";
 import { EventService } from "../services/eventService";
+import { RegistrationService } from "../services/registrationService";
 import type { Event } from "../lib/supabase";
 
 const EventDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
-  
-  // Event data state
+    // Event data state
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [registrationCount, setRegistrationCount] = useState<number>(0);
   
   // Payment state
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -35,7 +36,6 @@ const EventDetailsPage = () => {
     name: '',
     email: ''
   });
-
   // Load event data on component mount
   useEffect(() => {
     const loadEvent = async () => {
@@ -52,6 +52,12 @@ const EventDetailsPage = () => {
         if (result.success && result.event) {
           setEvent(result.event);
           setError(null);
+
+          // Load registration count
+          const registrationResult = await RegistrationService.getEventRegistrationCount(id);
+          if (registrationResult.success) {
+            setRegistrationCount(registrationResult.count || 0);
+          }
         } else {
           setError(result.error || 'Event not found');
         }
@@ -74,9 +80,8 @@ const EventDetailsPage = () => {
       [name]: value
     }));
   };
-
-  // Handle payment process
-  const handlePayment = async (e: React.FormEvent) => {
+  // Handle registration (payment or free)
+  const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!event) {
@@ -90,11 +95,52 @@ const EventDetailsPage = () => {
     }
 
     setIsProcessingPayment(true);
-    setPaymentStatus('processing');
+    setPaymentStatus('processing');    // Check if event is free
+    if (isEventFree(event.price)) {
+      // Handle free event registration
+      try {
+        console.log('Creating free event registration...');
+        
+        const registrationResult = await RegistrationService.createRegistration({
+          event_id: event.id,
+          attendee_email: registrationData.email.toLowerCase(),
+          attendee_name: registrationData.name,
+          payment_status: 'completed', // Free events are automatically completed
+          amount_paid: 0,
+          currency: 'GHS',
+          status: 'confirmed',
+          ticket_type: 'free'
+        });
 
+        if (registrationResult.success) {
+          setPaymentStatus('success');
+          setIsProcessingPayment(false);
+          
+          // Update registration count
+          const updatedCount = await RegistrationService.getEventRegistrationCount(event.id);
+          if (updatedCount.success) {
+            setRegistrationCount(updatedCount.count || 0);
+          }
+          
+          alert(`🎉 Registration successful! Welcome to ${event.title}, ${registrationData.name}!`);
+        } else {
+          throw new Error(registrationResult.error || 'Registration failed');
+        }
+        
+      } catch (error) {
+        console.error('Registration error:', error);
+        setPaymentStatus('failed');
+        setIsProcessingPayment(false);
+        alert('Registration failed. Please try again.');
+      }
+      
+      return;
+    }
+
+    // Handle paid event registration with Paystack
     const transactionData: PaystackTransaction = {
       email: registrationData.email,
-      amount: PaystackService.formatAmountToPesewas(event.price || 0), // Convert to pesewas
+      amount: PaystackService.formatAmountToPesewas(event.price), // Convert to pesewas
       currency: 'GHS',
       reference: PaystackService.generateReference('EVT'),
       metadata: {
@@ -114,25 +160,45 @@ const EventDetailsPage = () => {
           }
         ]
       }
-    };
-
-    try {
+    };    try {
       await PaystackService.processPayment(
         transactionData,
         async (response) => {
-          // Payment successful
+          // Payment successful - create registration record
           console.log('Payment response:', response);
-          setPaymentStatus('success');
           
-          // Verify transaction
-          const verification = await PaystackService.verifyTransaction(response.reference);
-          if (verification.status) {
-            console.log('Transaction verified successfully');
-            // Here you would typically save the registration to your database
-            alert(`🎉 Payment successful! Welcome to ${event.title}, ${registrationData.name}!`);
-          } else {
-            console.error('Transaction verification failed');
-            setPaymentStatus('failed');
+          try {
+            const registrationResult = await RegistrationService.createRegistration({
+              event_id: event.id,
+              attendee_email: registrationData.email.toLowerCase(),
+              attendee_name: registrationData.name,
+              payment_status: 'completed',
+              payment_reference: response.reference,
+              amount_paid: event.price,
+              currency: 'GHS',
+              status: 'confirmed',
+              ticket_type: 'paid',
+              metadata: {
+                paystack_response: response
+              }
+            });
+
+            if (registrationResult.success) {
+              setPaymentStatus('success');
+              
+              // Update registration count
+              const updatedCount = await RegistrationService.getEventRegistrationCount(event.id);
+              if (updatedCount.success) {
+                setRegistrationCount(updatedCount.count || 0);
+              }
+              
+              alert(`🎉 Payment successful! Welcome to ${event.title}, ${registrationData.name}!`);
+            } else {
+              throw new Error(registrationResult.error || 'Failed to create registration record');
+            }
+          } catch (registrationError) {
+            console.error('Registration creation error:', registrationError);
+            alert('Payment successful but registration record creation failed. Please contact support.');
           }
           
           setIsProcessingPayment(false);
@@ -244,9 +310,8 @@ const EventDetailsPage = () => {
               </div>
               <div className="flex items-center gap-2 text-purple-700">
                 <MapPin className="w-5 h-5" /> {event.location}
-              </div>
-              <div className="flex items-center gap-2 text-purple-700">
-                <Users className="w-5 h-5" /> {event.capacity} max capacity
+              </div>              <div className="flex items-center gap-2 text-purple-700">
+                <Users className="w-5 h-5" /> {registrationCount} registered / {event.capacity} capacity
               </div>
               <div className="flex items-center gap-2 text-purple-700">
                 <Star className="w-5 h-5 text-yellow-500" /> {event.category}
@@ -268,23 +333,19 @@ const EventDetailsPage = () => {
               </span>
             </div>
             
-            {/* Registration/Join Panel */}
-            {isRegistrationOpen(event) ? (
+            {/* Registration/Join Panel */}            {isRegistrationOpen(event) ? (
               <div className="bg-white/90 border border-purple-200 rounded-2xl shadow-xl p-8 flex flex-col gap-6 items-center max-w-lg mx-auto">
-                {/* Demo Notice */}
-                <div className="w-full bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-2 text-blue-800 font-semibold mb-2">
-                    <AlertCircle className="w-5 h-5" />
-                    Paystack Test Mode
+                {/* Live Payment Notice */}
+                <div className="w-full bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2 text-green-800 font-semibold mb-2">
+                    <ShieldCheck className="w-5 h-5" />
+                    Secure Live Payment
                   </div>
-                  <p className="text-blue-700 text-sm mb-2">
-                    This is using Paystack's test environment. No real money will be charged.
+                  <p className="text-green-700 text-sm mb-2">
+                    This is a live payment system. Real money will be charged to your card.
                   </p>
-                  <div className="text-blue-600 text-xs">
-                    <strong>Test Cards:</strong><br/>
-                    • Mastercard: 5531 8866 5214 2950 (CVV: 564, PIN: 3310)<br/>
-                    • Visa: 4084 0840 8408 4081 (CVV: 408, PIN: 0000)<br/>
-                    • Verve: 5061 0201 0000 0000 004 (CVV: 123, PIN: 1111)
+                  <div className="text-green-600 text-xs">
+                    <strong>Accepted:</strong> Visa, Mastercard, Verve, Bank Transfer, Mobile Money & USSD
                   </div>
                 </div>
 
@@ -292,7 +353,7 @@ const EventDetailsPage = () => {
                   Register for this Event
                 </h2>
 
-                <form onSubmit={handlePayment} className="w-full flex flex-col gap-4">
+                <form onSubmit={handleRegistration} className="w-full flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row gap-4 w-full">
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-purple-700 mb-1">
@@ -342,26 +403,31 @@ const EventDetailsPage = () => {
                       </div>
                     </div>
                   )}
-                  
-                  {/* Payment Status Indicator */}
+                    {/* Registration Status Indicator */}
                   {paymentStatus === 'processing' && (
                     <div className="flex items-center justify-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
                       <Loader className="w-4 h-4 animate-spin text-blue-500" />
-                      <span className="text-blue-700 font-medium">Processing payment...</span>
+                      <span className="text-blue-700 font-medium">
+                        {isEventFree(event.price) ? 'Processing registration...' : 'Processing payment...'}
+                      </span>
                     </div>
                   )}
                   
                   {paymentStatus === 'success' && (
                     <div className="flex items-center justify-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-green-700 font-medium">Payment successful! 🎉</span>
+                      <span className="text-green-700 font-medium">
+                        {isEventFree(event.price) ? 'Registration successful! 🎉' : 'Payment successful! 🎉'}
+                      </span>
                     </div>
                   )}
                   
                   {paymentStatus === 'failed' && (
                     <div className="flex items-center justify-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                       <AlertCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-red-700 font-medium">Payment failed. Please try again.</span>
+                      <span className="text-red-700 font-medium">
+                        {isEventFree(event.price) ? 'Registration failed. Please try again.' : 'Payment failed. Please try again.'}
+                      </span>
                     </div>
                   )}
 
@@ -375,20 +441,22 @@ const EventDetailsPage = () => {
                         ? 'bg-green-500 text-white'
                         : 'bg-gradient-to-r from-purple-500 to-purple-700 text-white hover:scale-105 hover:shadow-2xl'
                     }`}
-                  >
-                    {isProcessingPayment ? (
+                  >                    {isProcessingPayment ? (
                       <>
                         <Loader className="w-6 h-6 animate-spin" />
-                        Processing...
+                        {isEventFree(event.price) ? 'Registering...' : 'Processing...'}
                       </>
                     ) : paymentStatus === 'success' ? (
                       <>
                         <CheckCircle className="w-6 h-6" />
                         Registration Complete!
                       </>
-                    ) : (
-                      <>
-                        <CreditCard className="w-6 h-6" />
+                    ) : (                      <>
+                        {isEventFree(event.price) ? (
+                          <Users className="w-6 h-6" />
+                        ) : (
+                          <CreditCard className="w-6 h-6" />
+                        )}
                         {isEventFree(event.price) ? 'Register Now' : `Pay ₵${event.price} - Register Now`}
                       </>
                     )}

@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import type { Event, CreateEventData, EventTicket, EventAnalytics } from '../lib/supabase';
+import type { Event, CreateEventData } from '../lib/supabase';
 
 export class EventService {
   /**
@@ -95,11 +95,9 @@ export class EventService {
         
         console.error('❌ EventService: Database error:', error);
         throw new Error(`Published events fetch error: ${error.message}`);
-      }
-
-      console.log('✅ EventService: Successfully fetched', data?.length || 0, 'events');
+      }      console.log('✅ EventService: Successfully fetched', data?.length || 0, 'events');
       if (data && data.length > 0) {
-        console.log('📋 Events found:', data.map(e => `"${e.title}" (status: ${e.status}, published: ${e.is_published})`));
+        console.log('📋 Events found:', data.map((e: any) => `"${e.title}" (status: ${e.status}, published: ${e.is_published})`));
       }
       
       return {
@@ -112,6 +110,66 @@ export class EventService {
       return {
         success: false,
         message: 'Failed to load published events',
+        error: error instanceof Error ? error.message : 'An unexpected error occurred'
+      };
+    }
+  }
+
+  /**
+   * Get published events with registration counts
+   */
+  static async getPublishedEventsWithCounts(limit: number = 10, includeOrganizerInfo: boolean = true) {
+    try {
+      console.log('🔍 EventService: Fetching published events with registration counts...', { limit, includeOrganizerInfo });
+      
+      // First, get the events
+      const eventsResult = await this.getPublishedEvents(limit, includeOrganizerInfo);
+      
+      if (!eventsResult.success || !eventsResult.events) {
+        return eventsResult;
+      }
+
+      // For each event, get the registration count
+      const eventsWithCounts = await Promise.all(
+        eventsResult.events.map(async (event: any) => {
+          try {
+            // Try to get registration count
+            const { count, error } = await supabase
+              .from('event_registrations')
+              .select('*', { count: 'exact', head: true })
+              .eq('event_id', event.id)
+              .eq('status', 'confirmed');
+
+            const registrationCount = error ? 0 : (count || 0);
+            
+            return {
+              ...event,
+              registration_count: registrationCount,
+              attendees: registrationCount // For backward compatibility
+            };
+          } catch (error) {
+            console.warn(`⚠️ Could not get registration count for event ${event.id}:`, error);
+            return {
+              ...event,
+              registration_count: 0,
+              attendees: 0
+            };
+          }
+        })
+      );
+
+      console.log('✅ EventService: Successfully fetched events with registration counts');
+      
+      return {
+        success: true,
+        message: `Found ${eventsWithCounts.length} published events with registration counts`,
+        events: eventsWithCounts
+      };
+    } catch (error) {
+      console.error('❌ EventService: Published events with counts fetch error:', error);
+      return {
+        success: false,
+        message: 'Failed to load published events with counts',
         error: error instanceof Error ? error.message : 'An unexpected error occurred'
       };
     }
