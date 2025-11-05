@@ -382,14 +382,14 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ organizer }) => {
             <span>Create New Event</span>
           </button>
           <button
-            onClick={() => navigate('/organizer/analytics')}
+            onClick={() => navigate('/dashboard/organizer/analytics')}
             className="flex items-center justify-center space-x-2 bg-white border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-xl font-medium hover:border-primary-300 hover:text-primary-600 transition-colors"
           >
             <BarChart3 className="h-5 w-5" />
             <span>View Analytics</span>
           </button>
           <button
-            onClick={() => navigate('/organizer/attendees')}
+            onClick={() => navigate('/dashboard/organizer/attendees')}
             className="flex items-center justify-center space-x-2 bg-white border-2 border-gray-200 text-gray-700 px-6 py-4 rounded-xl font-medium hover:border-primary-300 hover:text-primary-600 transition-colors"
           >
             <Users className="h-5 w-5" />
