@@ -28,10 +28,12 @@ import { EventService } from "../services/eventService";
 import { ValidationService } from "../services/validationService";
 import { supabase } from "../lib/supabase";
 import { OrganizerService } from "../services/organizerService";
+import { useTheme } from "../contexts/ThemeContext";
 import type { CreateEventData, Organizer } from "../lib/supabase";
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
+  const { currencySymbol, currencyCode } = useTheme();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [organizer, setOrganizer] = useState<Organizer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +50,7 @@ const CreateEventPage = () => {
     venue_name: "",
     capacity: 100,
     price: 0,
-    currency: "USD",
+    currency: currencyCode || "USD",
     category: "Other",
     image_url: "",
     eventType: "in-person"
@@ -549,7 +551,7 @@ const CreateEventPage = () => {
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Ticket Price ($) *
+                              Ticket Price ({currencySymbol}) *
                             </label>
                             <div className="space-y-3">
                               <div className="flex space-x-2">
@@ -577,9 +579,9 @@ const CreateEventPage = () => {
                                 </button>
                               </div>
                               <p className="text-xs text-gray-500">
-                                {formData.price === 0 
-                                  ? '✅ This event is free for attendees' 
-                                  : 'Set to $0 or click "Free" for no-cost events'
+                                {formData.price === 0
+                                  ? '✅ This event is free for attendees'
+                                  : `Set to ${currencySymbol}0 or click "Free" for no-cost events`
                                 }
                               </p>
                             </div>
@@ -775,7 +777,7 @@ const CreateEventPage = () => {
                               <p><span className="font-medium">Category:</span> {formData.category}</p>
                               <p><span className="font-medium">Type:</span> {eventTypes.find(t => t.value === formData.eventType)?.label}</p>
                               <p><span className="font-medium">Capacity:</span> {formData.capacity} people</p>
-                              <p><span className="font-medium">Price:</span> {formData.price === 0 ? 'Free' : `$${formData.price}`}</p>
+                              <p><span className="font-medium">Price:</span> {formData.price === 0 ? 'Free' : `${currencySymbol}${formData.price}`}</p>
                             </div>
                           </div>
 

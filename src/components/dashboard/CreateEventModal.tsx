@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Calendar, 
@@ -17,6 +17,7 @@ import { ValidationService } from '../../services/validationService';
 import ImageCropper from './ImageCropper';
 import LocationPicker from './LocationPicker';
 import type { CreateEventData } from '../../lib/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -31,8 +32,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
   organizerId,
   onEventCreated
 }) => {
-  const [formData, setFormData] = useState<CreateEventData & { 
-    locationCoords?: { lat: number; lng: number } 
+  const { currencySymbol, currencyCode } = useTheme();
+  const [formData, setFormData] = useState<CreateEventData & {
+    locationCoords?: { lat: number; lng: number }
   }>({
     title: '',
     description: '',
@@ -42,7 +44,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     venue_name: '',
     capacity: 100,
     price: 0,
-    currency: 'USD',
+    currency: currencyCode || 'USD',
     category: 'Other',
     image_url: ''
   });
@@ -57,6 +59,15 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [showImageCropper, setShowImageCropper] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [croppedImagePreview, setCroppedImagePreview] = useState<string>('');
+
+  useEffect(() => {
+    if (isOpen && currencyCode) {
+      setFormData(prev => ({
+        ...prev,
+        currency: currencyCode
+      }));
+    }
+  }, [isOpen, currencyCode]);
 
   const categories = [
     'Business & Professional',
@@ -189,7 +200,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
           venue_name: '',
           capacity: 100,
           price: 0,
-          currency: 'USD',
+          currency: currencyCode || 'USD',
           category: 'Other',
           image_url: ''
         });
@@ -355,7 +366,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ticket Price ($) *
+                        Ticket Price ({currencySymbol}) *
                       </label>
                       <div className="space-y-3">
                         <div className="flex space-x-2">
@@ -383,9 +394,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                           </button>
                         </div>
                         <p className="text-xs text-gray-500">
-                          {formData.price === 0 
-                            ? '✅ This event is free for attendees' 
-                            : 'Set to $0 or click "Free" for no-cost events'
+                          {formData.price === 0
+                            ? '✅ This event is free for attendees'
+                            : `Set to ${currencySymbol}0 or click "Free" for no-cost events`
                           }
                         </p>
                       </div>
