@@ -179,11 +179,10 @@ export class SettingsService {
     error?: string;
   }> {
     try {
-      // Use uploadEventImage method with a special identifier for logos
-      const result = await StorageService.uploadEventImage(
+      // Use the dedicated organizer logo upload method
+      const result = await StorageService.uploadOrganizerLogo(
         file,
-        organizerId,
-        'logo'
+        organizerId
       );
 
       if (!result.success || !result.url) {

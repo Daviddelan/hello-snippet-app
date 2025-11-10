@@ -61,9 +61,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, organize
             {/* Profile dropdown */}
             <div className="relative">
               <button className="flex items-center space-x-3 rounded-full bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
-                </div>
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={organizer?.organization_name || 'Organization'}
+                    className="h-8 w-8 rounded-full object-cover border-2 border-gray-200"
+                  />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                )}
                 <span className="hidden lg:block font-medium text-gray-700">
                   {organizer?.organization_name || 'Organization'}
                 </span>

@@ -19,7 +19,9 @@ export interface ImageValidationResult {
 
 export class StorageService {
   private static readonly BUCKET_NAME = 'event-images';
+  private static readonly LOGO_BUCKET_NAME = 'organizer-logos';
   private static readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  private static readonly MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB for logos
   private static readonly ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
   /**
@@ -244,6 +246,92 @@ export class StorageService {
 
     } catch (error) {
       console.error('❌ Unexpected upload error:', error);
+      return {
+        success: false,
+        error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  }
+
+  /**
+   * Upload organizer logo to dedicated logos bucket
+   */
+  static async uploadOrganizerLogo(
+    file: File,
+    organizerId: string
+  ): Promise<UploadResult> {
+    try {
+      console.log('Starting organizer logo upload...', {
+        fileName: file.name,
+        fileSize: file.size,
+        organizerId
+      });
+
+      // Validate file size (5MB max for logos)
+      if (file.size > this.MAX_LOGO_SIZE) {
+        return {
+          success: false,
+          error: `Logo file size too large. Maximum size: ${this.MAX_LOGO_SIZE / (1024 * 1024)}MB`
+        };
+      }
+
+      // Validate file type
+      if (!this.ALLOWED_TYPES.includes(file.type)) {
+        return {
+          success: false,
+          error: `Invalid file type. Allowed types: ${this.ALLOWED_TYPES.join(', ')}`
+        };
+      }
+
+      // Generate filename - store as organizerId/logo.ext
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${organizerId}/logo.${fileExt}`;
+
+      // Delete old logo if it exists
+      try {
+        const { data: existingFiles } = await supabase.storage
+          .from(this.LOGO_BUCKET_NAME)
+          .list(organizerId);
+
+        if (existingFiles && existingFiles.length > 0) {
+          const filesToDelete = existingFiles.map(f => `${organizerId}/${f.name}`);
+          await supabase.storage
+            .from(this.LOGO_BUCKET_NAME)
+            .remove(filesToDelete);
+        }
+      } catch (cleanupError) {
+        console.log('No existing logo to cleanup or cleanup failed:', cleanupError);
+      }
+
+      // Upload to Supabase storage
+      const { data, error } = await supabase.storage
+        .from(this.LOGO_BUCKET_NAME)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) {
+        console.error('Logo upload error:', error);
+        return {
+          success: false,
+          error: `Upload failed: ${error.message || 'Unknown storage error'}`
+        };
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from(this.LOGO_BUCKET_NAME)
+        .getPublicUrl(data.path);
+
+      console.log('Logo uploaded successfully:', urlData.publicUrl);
+      return {
+        success: true,
+        url: urlData.publicUrl
+      };
+
+    } catch (error) {
+      console.error('Unexpected logo upload error:', error);
       return {
         success: false,
         error: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`
