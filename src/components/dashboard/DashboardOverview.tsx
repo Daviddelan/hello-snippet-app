@@ -20,6 +20,7 @@ import { EventService } from '../../services/eventService';
 import { AnalyticsService, type DateRange } from '../../services/analyticsService';
 import CreateEventModal from './CreateEventModal';
 import type { Organizer } from '../../lib/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DashboardOverviewProps {
   organizer: Organizer | null;
@@ -27,6 +28,7 @@ interface DashboardOverviewProps {
 
 const DashboardOverview: React.FC<DashboardOverviewProps> = ({ organizer }) => {
   const navigate = useNavigate();
+  const { currencySymbol } = useTheme();
   const [stats, setStats] = useState<any>(null);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
@@ -175,7 +177,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ organizer }) => {
     },
     {
       name: 'Total Revenue',
-      value: `$${stats?.totalRevenue?.toLocaleString() || '0'}`,
+      value: `${currencySymbol}${stats?.totalRevenue?.toLocaleString() || '0'}`,
       change: formatComparison(stats?.percentageChanges?.revenue || 0),
       changeType: (stats?.percentageChanges?.revenue || 0) >= 0 ? 'increase' : 'decrease',
       icon: DollarSign,
@@ -342,7 +344,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ organizer }) => {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium text-gray-900">
-                      {event.price === 0 ? 'Free' : `$${event.price}`}
+                      {event.price === 0 ? 'Free' : `${currencySymbol}${event.price}`}
                     </div>
                     <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
                       event.status === 'published' ? 'bg-green-100 text-green-800' :

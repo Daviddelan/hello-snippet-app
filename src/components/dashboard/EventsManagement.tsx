@@ -20,12 +20,14 @@ import {
 import CreateEventModal from './CreateEventModal';
 import { EventService } from '../../services/eventService';
 import type { Organizer, Event } from '../../lib/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface EventsManagementProps {
   organizer: Organizer | null;
 }
 
 const EventsManagement: React.FC<EventsManagementProps> = ({ organizer }) => {
+  const { currencySymbol } = useTheme();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -284,7 +286,7 @@ const EventsManagement: React.FC<EventsManagementProps> = ({ organizer }) => {
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <DollarSign className="h-4 w-4 mr-2" />
-                    {event.price === 0 ? 'Free' : `$${event.price}`}
+                    {event.price === 0 ? 'Free' : `${currencySymbol}${event.price}`}
                   </div>
                 </div>
 
@@ -367,7 +369,7 @@ const EventsManagement: React.FC<EventsManagementProps> = ({ organizer }) => {
                       {event.capacity}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {event.price === 0 ? 'Free' : `$${event.price}`}
+                      {event.price === 0 ? 'Free' : `${currencySymbol}${event.price}`}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">

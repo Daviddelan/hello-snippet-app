@@ -128,7 +128,8 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
 
   const loadExchangeRates = async () => {
     setIsLoadingRates(true);
-    const result = await CurrencyService.getLiveExchangeRates('USD');
+    const baseCurrency = currencySettings.defaultCurrency || 'USD';
+    const result = await CurrencyService.getLiveExchangeRates(baseCurrency);
     if (result.success && result.rates) {
       setExchangeRates(result.rates);
     }
@@ -264,6 +265,8 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
     const currency = SUPPORTED_CURRENCIES.find(c => c.code === currencyCode);
     if (!currency || !organizer) return;
 
+    setIsLoadingRates(true);
+
     setCurrencySettings({
       defaultCurrency: currency.code,
       currencySymbol: currency.symbol
@@ -277,12 +280,18 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
     if (result.success) {
       // Update theme context
       theme.updateCurrency(currency.code, currency.symbol);
-      showMessage('success', `Currency changed to ${currency.name}`);
+      showMessage('success', `Currency changed to ${currency.name}. Loading exchange rates...`);
+
       // Reload exchange rates for new currency
-      await loadExchangeRates();
+      const ratesResult = await CurrencyService.getLiveExchangeRates(currency.code);
+      if (ratesResult.success && ratesResult.rates) {
+        setExchangeRates(ratesResult.rates);
+      }
     } else {
       showMessage('error', result.error || 'Failed to update currency');
     }
+
+    setIsLoadingRates(false);
   };
 
   const handleSaveNotifications = async () => {

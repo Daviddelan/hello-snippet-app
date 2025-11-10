@@ -14,12 +14,14 @@ import {
 } from 'lucide-react';
 import { EventService } from '../../services/eventService';
 import type { Organizer } from '../../lib/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface AnalyticsProps {
   organizer: Organizer | null;
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ organizer }) => {
+  const { currencySymbol } = useTheme();
   const [dateRange, setDateRange] = useState('30d');
   const [chartType, setChartType] = useState('line');
   const [stats, setStats] = useState<any>(null);
@@ -216,7 +218,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ organizer }) => {
               <p className="text-gray-500">Revenue trend chart</p>
               <p className="text-sm text-gray-400">
                 {stats?.totalRevenue > 0 
-                  ? `Total revenue: $${stats.totalRevenue.toLocaleString()}`
+                  ? `Total revenue: ${currencySymbol}${stats.totalRevenue.toLocaleString()}`
                   : 'No revenue data yet'
                 }
               </p>
@@ -300,7 +302,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ organizer }) => {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-gray-900 font-medium">
-                      ${event.revenue.toLocaleString()}
+                      {currencySymbol}{event.revenue.toLocaleString()}
                     </td>
                     <td className="py-4 px-4 text-gray-600">
                       {event.attendees}
