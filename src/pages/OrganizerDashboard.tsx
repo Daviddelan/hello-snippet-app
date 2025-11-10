@@ -6,7 +6,7 @@ import DashboardOverview from '../components/dashboard/DashboardOverview';
 import EventsManagement from '../components/dashboard/EventsManagement';
 import AdvancedAnalytics from '../components/dashboard/AdvancedAnalytics';
 import Attendees from '../components/dashboard/Attendees';
-import Marketing from '../components/dashboard/Marketing';
+import PromoCodesMarketing from '../components/dashboard/PromoCodesMarketing';
 import Settings from '../components/dashboard/Settings';
 import CreateEventModal from '../components/dashboard/CreateEventModal';
 import { supabase } from '../lib/supabase';
@@ -149,7 +149,7 @@ const OrganizerDashboard = () => {
                 <Route path="/events" element={<EventsManagement organizer={organizer} />} />
                 <Route path="/analytics" element={<AdvancedAnalytics organizer={organizer} />} />
                 <Route path="/attendees" element={<Attendees organizer={organizer} />} />
-                <Route path="/marketing" element={<Marketing organizer={organizer} />} />
+                <Route path="/marketing" element={<PromoCodesMarketing organizer={organizer} />} />
                 <Route path="/settings" element={<Settings organizer={organizer} />} />
               </Routes>
             </div>
