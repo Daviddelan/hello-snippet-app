@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabase';
 import { OrganizerService } from '../services/organizerService';
 import type { Organizer } from '../lib/supabase';
 import { Loader, AlertCircle } from 'lucide-react';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 const OrganizerDashboard = () => {
   const location = useLocation();
@@ -121,62 +122,64 @@ const OrganizerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-        <DashboardSidebar 
-          isOpen={true} 
-          onClose={() => setSidebarOpen(false)}
-          onCreateEvent={handleCreateEvent}
-        />
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 lg:pl-64">
-        {/* Header */}
-        <DashboardHeader 
-          onMenuClick={() => setSidebarOpen(true)}
-          organizer={organizer}
-        />
-
-        {/* Page Content */}
-        <main className="flex-1 py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <Routes>
-              <Route path="/" element={<DashboardOverview organizer={organizer} />} />
-              <Route path="/events" element={<EventsManagement organizer={organizer} />} />
-              <Route path="/analytics" element={<Analytics organizer={organizer} />} />
-              <Route path="/attendees" element={<Attendees organizer={organizer} />} />
-              <Route path="/marketing" element={<Marketing organizer={organizer} />} />
-              <Route path="/settings" element={<Settings organizer={organizer} />} />
-            </Routes>
-          </div>
-        </main>
-      </div>
-
-      {/* Mobile sidebar overlay */}
-      <div className={`lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
-        {/* Mobile sidebar overlay */}
-        <div className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-        
-        {/* Mobile sidebar */}
-        <div className="fixed inset-y-0 left-0 z-50 w-64">
-          <DashboardSidebar 
-            isOpen={sidebarOpen} 
+    <ThemeProvider organizerId={organizer?.id}>
+      <div className="min-h-screen bg-gray-50 flex">
+        {/* Sidebar */}
+        <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+          <DashboardSidebar
+            isOpen={true}
             onClose={() => setSidebarOpen(false)}
             onCreateEvent={handleCreateEvent}
           />
         </div>
-      </div>
 
-      {/* Global Create Event Modal */}
-      <CreateEventModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        organizerId={organizer?.id || ''}
-        onEventCreated={handleEventCreated}
-      />
-    </div>
+        {/* Main Content */}
+        <div className="flex-1 lg:pl-64">
+          {/* Header */}
+          <DashboardHeader
+            onMenuClick={() => setSidebarOpen(true)}
+            organizer={organizer}
+          />
+
+          {/* Page Content */}
+          <main className="flex-1 py-6">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <Routes>
+                <Route path="/" element={<DashboardOverview organizer={organizer} />} />
+                <Route path="/events" element={<EventsManagement organizer={organizer} />} />
+                <Route path="/analytics" element={<Analytics organizer={organizer} />} />
+                <Route path="/attendees" element={<Attendees organizer={organizer} />} />
+                <Route path="/marketing" element={<Marketing organizer={organizer} />} />
+                <Route path="/settings" element={<Settings organizer={organizer} />} />
+              </Routes>
+            </div>
+          </main>
+        </div>
+
+        {/* Mobile sidebar overlay */}
+        <div className={`lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
+          {/* Mobile sidebar overlay */}
+          <div className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
+
+          {/* Mobile sidebar */}
+          <div className="fixed inset-y-0 left-0 z-50 w-64">
+            <DashboardSidebar
+              isOpen={sidebarOpen}
+              onClose={() => setSidebarOpen(false)}
+              onCreateEvent={handleCreateEvent}
+            />
+          </div>
+        </div>
+
+        {/* Global Create Event Modal */}
+        <CreateEventModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          organizerId={organizer?.id || ''}
+          onEventCreated={handleEventCreated}
+        />
+      </div>
+    </ThemeProvider>
   );
 };
 

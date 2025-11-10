@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --color-primary: #001B79;
+    --color-secondary: #0066CC;
+    --color-primary-rgb: 0, 27, 121;
+    --color-secondary-rgb: 0, 102, 204;
+  }
+}
+
 /* React Image Crop Styles */
 .ReactCrop {
   display: inline-block;
