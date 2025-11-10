@@ -29,7 +29,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, organize
                 <img
                   src={logoUrl}
                   alt="Organization logo"
-                  className="h-10 w-10 rounded-lg object-cover"
+                  className="h-10 w-auto max-w-[160px] object-contain"
                 />
               )}
               <h1 className="text-2xl font-bold text-gray-900">
