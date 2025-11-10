@@ -179,9 +179,11 @@ export class SettingsService {
     error?: string;
   }> {
     try {
-      const result = await StorageService.uploadFile(
+      // Use uploadEventImage method with a special identifier for logos
+      const result = await StorageService.uploadEventImage(
         file,
-        `organizers/${organizerId}/logo`
+        organizerId,
+        'logo'
       );
 
       if (!result.success || !result.url) {

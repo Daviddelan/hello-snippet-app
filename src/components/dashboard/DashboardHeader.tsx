@@ -1,6 +1,7 @@
 import React from 'react';
 import { Menu, Bell, Search, User } from 'lucide-react';
 import type { Organizer } from '../../lib/supabase';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -8,20 +9,29 @@ interface DashboardHeaderProps {
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuClick, organizer }) => {
+  const { logoUrl } = useTheme();
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Left side */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
             <button
               onClick={onMenuClick}
               className="lg:hidden rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
             >
               <Menu className="h-6 w-6" />
             </button>
-            
-            <div className="hidden lg:block">
+
+            <div className="hidden lg:flex lg:items-center lg:space-x-3">
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt="Organization logo"
+                  className="h-10 w-10 rounded-lg object-cover"
+                />
+              )}
               <h1 className="text-2xl font-bold text-gray-900">
                 {organizer?.organization_name || 'Dashboard'}
               </h1>
