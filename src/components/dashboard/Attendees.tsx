@@ -1,96 +1,108 @@
-import React, { useState } from 'react';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  Mail, 
-  CheckCircle, 
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  Filter,
+  Download,
+  Mail,
+  CheckCircle,
   XCircle,
   MoreHorizontal,
   UserCheck,
-  Send
+  Send,
+  Calendar
 } from 'lucide-react';
 import type { Organizer } from '../../lib/supabase';
+import { EventService } from '../../services/eventService';
+import { RegistrationService } from '../../services/registrationService';
+import type { EventRegistration } from '../../services/registrationService';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface AttendeesProps {
   organizer: Organizer | null;
 }
 
+interface EventWithRegistrations {
+  id: string;
+  title: string;
+  registrationCount: number;
+}
+
 const Attendees: React.FC<AttendeesProps> = ({ organizer }) => {
+  const { currencySymbol } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [eventFilter, setEventFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedAttendees, setSelectedAttendees] = useState<number[]>([]);
+  const [selectedAttendees, setSelectedAttendees] = useState<string[]>([]);
+  const [events, setEvents] = useState<EventWithRegistrations[]>([]);
+  const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
-  // Mock attendees data
-  const attendees = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@email.com',
-      event: 'AI Conference 2024',
-      ticketType: 'VIP',
-      checkedIn: true,
-      registrationDate: '2024-02-15',
-      amount: 299
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      email: 'michael.chen@email.com',
-      event: 'AI Conference 2024',
-      ticketType: 'General',
-      checkedIn: false,
-      registrationDate: '2024-02-18',
-      amount: 199
-    },
-    {
-      id: 3,
-      name: 'Emma Rodriguez',
-      email: 'emma.rodriguez@email.com',
-      event: 'Design Workshop',
-      ticketType: 'Early Bird',
-      checkedIn: true,
-      registrationDate: '2024-02-10',
-      amount: 149
-    },
-    {
-      id: 4,
-      name: 'David Park',
-      email: 'david.park@email.com',
-      event: 'Startup Networking',
-      ticketType: 'Free',
-      checkedIn: false,
-      registrationDate: '2024-02-20',
-      amount: 0
-    },
-    {
-      id: 5,
-      name: 'Lisa Wang',
-      email: 'lisa.wang@email.com',
-      event: 'AI Conference 2024',
-      ticketType: 'General',
-      checkedIn: true,
-      registrationDate: '2024-02-12',
-      amount: 199
+  useEffect(() => {
+    if (organizer?.id) {
+      loadData();
     }
-  ];
+  }, [organizer?.id]);
 
-  const events = ['AI Conference 2024', 'Design Workshop', 'Startup Networking', 'Tech Summit'];
+  const loadData = async () => {
+    if (!organizer?.id) return;
 
-  const filteredAttendees = attendees.filter(attendee => {
-    const matchesSearch = attendee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         attendee.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesEvent = eventFilter === 'all' || attendee.event === eventFilter;
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'checked-in' && attendee.checkedIn) ||
-                         (statusFilter === 'not-checked-in' && !attendee.checkedIn);
+    try {
+      setLoading(true);
+
+      const eventsResult = await EventService.getOrganizerEvents(organizer.id);
+
+      if (eventsResult.success && eventsResult.events) {
+        const eventsWithCount = await Promise.all(
+          eventsResult.events.map(async (event) => {
+            const countResult = await RegistrationService.getEventRegistrationCount(event.id);
+            return {
+              id: event.id,
+              title: event.title,
+              registrationCount: countResult.count || 0
+            };
+          })
+        );
+
+        setEvents(eventsWithCount);
+
+        if (eventsWithCount.length > 0) {
+          const allRegistrations: EventRegistration[] = [];
+
+          for (const event of eventsResult.events) {
+            const regResult = await RegistrationService.getEventRegistrations(event.id);
+            if (regResult.success && regResult.registrations) {
+              const regsWithEventName = regResult.registrations.map(reg => ({
+                ...reg,
+                eventTitle: event.title
+              }));
+              allRegistrations.push(...regsWithEventName as any);
+            }
+          }
+
+          setRegistrations(allRegistrations);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading attendees data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredAttendees = registrations.filter(reg => {
+    const matchesSearch = (reg.attendee_name?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
+                         reg.attendee_email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesEvent = eventFilter === 'all' || reg.event_id === eventFilter;
+    const matchesStatus = statusFilter === 'all' ||
+                         (statusFilter === 'checked-in' && reg.check_in_time) ||
+                         (statusFilter === 'not-checked-in' && !reg.check_in_time);
     return matchesSearch && matchesEvent && matchesStatus;
   });
 
-  const handleSelectAttendee = (id: number) => {
-    setSelectedAttendees(prev => 
-      prev.includes(id) 
+  const handleSelectAttendee = (id: string) => {
+    setSelectedAttendees(prev =>
+      prev.includes(id)
         ? prev.filter(attendeeId => attendeeId !== id)
         : [...prev, id]
     );
@@ -104,22 +116,57 @@ const Attendees: React.FC<AttendeesProps> = ({ organizer }) => {
     }
   };
 
-  const handleCheckIn = (id: number) => {
-    // Handle check-in logic
-    console.log('Check in attendee:', id);
+  const handleCheckIn = async (registrationId: string) => {
+    try {
+      setUpdating(true);
+
+      const { error } = await EventService.supabase
+        .from('event_registrations')
+        .update({
+          check_in_time: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', registrationId);
+
+      if (error) {
+        console.error('Check-in error:', error);
+        alert('Failed to check in attendee');
+        return;
+      }
+
+      await loadData();
+    } catch (error) {
+      console.error('Check-in error:', error);
+      alert('Failed to check in attendee');
+    } finally {
+      setUpdating(false);
+    }
   };
 
-  const handleResendTicket = (id: number) => {
-    // Handle resend ticket logic
+  const handleResendTicket = (id: string) => {
     console.log('Resend ticket to attendee:', id);
+    alert('Email functionality will be implemented soon');
   };
 
   const stats = {
-    total: attendees.length,
-    checkedIn: attendees.filter(a => a.checkedIn).length,
-    notCheckedIn: attendees.filter(a => !a.checkedIn).length,
-    totalRevenue: attendees.reduce((sum, a) => sum + a.amount, 0)
+    total: registrations.length,
+    checkedIn: registrations.filter(r => r.check_in_time).length,
+    notCheckedIn: registrations.filter(r => !r.check_in_time).length,
+    totalRevenue: registrations
+      .filter(r => r.payment_status === 'completed')
+      .reduce((sum, r) => sum + (r.amount_paid || 0), 0)
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading attendees...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -183,7 +230,7 @@ const Attendees: React.FC<AttendeesProps> = ({ organizer }) => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">${stats.totalRevenue.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{currencySymbol}{stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
             </div>
             <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600">
               <Download className="h-6 w-6 text-white" />
@@ -214,9 +261,11 @@ const Attendees: React.FC<AttendeesProps> = ({ organizer }) => {
               onChange={(e) => setEventFilter(e.target.value)}
               className="rounded-lg border border-gray-300 bg-white py-2 px-3 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             >
-              <option value="all">All Events</option>
+              <option value="all">All Events ({registrations.length})</option>
               {events.map(event => (
-                <option key={event} value={event}>{event}</option>
+                <option key={event.id} value={event.id}>
+                  {event.title} ({event.registrationCount})
+                </option>
               ))}
             </select>
 
@@ -272,71 +321,77 @@ const Attendees: React.FC<AttendeesProps> = ({ organizer }) => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendee</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAttendees.map((attendee) => (
-                <tr key={attendee.id} className="hover:bg-gray-50">
+              {filteredAttendees.map((reg) => (
+                <tr key={reg.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input
                       type="checkbox"
-                      checked={selectedAttendees.includes(attendee.id)}
-                      onChange={() => handleSelectAttendee(attendee.id)}
+                      checked={selectedAttendees.includes(reg.id)}
+                      onChange={() => handleSelectAttendee(reg.id)}
                       className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{attendee.name}</div>
-                      <div className="text-sm text-gray-500">{attendee.email}</div>
+                      <div className="text-sm font-medium text-gray-900">{reg.attendee_name || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{reg.attendee_email}</div>
+                      {reg.attendee_phone && (
+                        <div className="text-sm text-gray-400">{reg.attendee_phone}</div>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{attendee.event}</div>
-                    <div className="text-sm text-gray-500">Registered: {new Date(attendee.registrationDate).toLocaleDateString()}</div>
+                    <div className="text-sm text-gray-900">{(reg as any).eventTitle}</div>
+                    <div className="text-sm text-gray-500">Registered: {new Date(reg.registration_date).toLocaleDateString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      attendee.ticketType === 'VIP' ? 'bg-purple-100 text-purple-800' :
-                      attendee.ticketType === 'Early Bird' ? 'bg-green-100 text-green-800' :
-                      attendee.ticketType === 'Free' ? 'bg-blue-100 text-blue-800' :
+                      reg.payment_status === 'completed' ? 'bg-green-100 text-green-800' :
+                      reg.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      reg.payment_status === 'failed' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {attendee.ticketType}
+                      {reg.payment_status === 'completed' ? 'Paid' :
+                       reg.payment_status === 'pending' ? 'Pending' :
+                       reg.payment_status === 'failed' ? 'Failed' : reg.payment_status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      {attendee.checkedIn ? (
+                      {reg.check_in_time ? (
                         <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
                       ) : (
                         <XCircle className="h-5 w-5 text-gray-400 mr-2" />
                       )}
-                      <span className={`text-sm ${attendee.checkedIn ? 'text-green-600' : 'text-gray-500'}`}>
-                        {attendee.checkedIn ? 'Checked In' : 'Not Checked In'}
+                      <span className={`text-sm ${reg.check_in_time ? 'text-green-600' : 'text-gray-500'}`}>
+                        {reg.check_in_time ? 'Checked In' : 'Not Checked In'}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {attendee.amount === 0 ? 'Free' : `$${attendee.amount}`}
+                    {(reg.amount_paid || 0) === 0 ? 'Free' : `${currencySymbol}${(reg.amount_paid || 0).toFixed(2)}`}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      {!attendee.checkedIn && (
+                      {!reg.check_in_time && (
                         <button
-                          onClick={() => handleCheckIn(attendee.id)}
-                          className="text-green-600 hover:text-green-900"
+                          onClick={() => handleCheckIn(reg.id)}
+                          disabled={updating}
+                          className="text-green-600 hover:text-green-900 disabled:opacity-50"
                           title="Check In"
                         >
                           <UserCheck className="h-4 w-4" />
                         </button>
                       )}
                       <button
-                        onClick={() => handleResendTicket(attendee.id)}
+                        onClick={() => handleResendTicket(reg.id)}
                         className="text-primary-600 hover:text-primary-900"
                         title="Resend Ticket"
                       >

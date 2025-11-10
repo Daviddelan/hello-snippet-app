@@ -247,6 +247,91 @@ export class RegistrationService {
   }
 
   /**
+   * Check in an attendee
+   */
+  static async checkInAttendee(registrationId: string): Promise<{
+    success: boolean;
+    registration?: EventRegistration;
+    error?: string;
+  }> {
+    try {
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .update({
+          check_in_time: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', registrationId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Check-in error:', error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        registration: data
+      };
+
+    } catch (error) {
+      console.error('❌ Check-in service error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Get all registrations for organizer (across all events)
+   */
+  static async getOrganizerRegistrations(organizerId: string): Promise<{
+    success: boolean;
+    registrations?: EventRegistration[];
+    error?: string;
+  }> {
+    try {
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .select(`
+          *,
+          events!inner (
+            id,
+            title,
+            organizer_id
+          )
+        `)
+        .eq('events.organizer_id', organizerId)
+        .order('registration_date', { ascending: false });
+
+      if (error) {
+        console.error('❌ Error getting organizer registrations:', error);
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return {
+        success: true,
+        registrations: data || []
+      };
+
+    } catch (error) {
+      console.error('❌ Organizer registrations service error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
    * Get registration statistics for an event
    */
   static async getEventRegistrationStats(eventId: string): Promise<{

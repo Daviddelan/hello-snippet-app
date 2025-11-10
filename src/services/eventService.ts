@@ -2,6 +2,9 @@ import { supabase } from '../lib/supabase';
 import type { Event, CreateEventData } from '../lib/supabase';
 
 export class EventService {
+  static get supabase() {
+    return supabase;
+  }
   /**
    * Create a new event
    */
