@@ -503,29 +503,34 @@ USING (bucket_id = '${this.BUCKET_NAME}');
       
       if (user) {
         console.log('🔍 Testing upload permissions...');
-        const testBlob = new Blob(['test-upload'], { type: 'text/plain' });
-        const testPath = `test_${Date.now()}.txt`;
-        
+
+        // Create a tiny 1x1 transparent PNG for testing
+        const testImageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+        const testImageBlob = await fetch(`data:image/png;base64,${testImageData}`).then(r => r.blob());
+        const testPath = `test/${user.id}/test_${Date.now()}.png`;
+
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from(this.BUCKET_NAME)
-          .upload(testPath, testBlob);
-        
+          .upload(testPath, testImageBlob, {
+            contentType: 'image/png'
+          });
+
         if (uploadError) {
           console.error('❌ Upload test failed:', uploadError);
           return {
             success: false,
             error: `Upload test failed: ${uploadError.message}`,
-            details: { 
-              step: 'test_upload', 
+            details: {
+              step: 'test_upload',
               error: uploadError,
               authenticated: true
             },
             instructions: 'Please check your INSERT policy for storage.objects table.'
           };
         }
-        
+
         console.log('✅ Upload test successful');
-        
+
         // Clean up test file
         await supabase.storage
           .from(this.BUCKET_NAME)
