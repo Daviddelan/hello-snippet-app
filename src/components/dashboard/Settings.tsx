@@ -19,6 +19,7 @@ import type { Organizer } from '../../lib/supabase';
 import { SettingsService, SUPPORTED_CURRENCIES } from '../../services/settingsService';
 import { CurrencyService } from '../../services/currencyService';
 import { useTheme } from '../../contexts/ThemeContext';
+import StorageSetupHelper from '../StorageSetupHelper';
 
 interface SettingsProps {
   organizer: Organizer | null;
@@ -520,6 +521,8 @@ const Settings: React.FC<SettingsProps> = ({ organizer }) => {
 
           {activeTab === 'branding' && (
             <div className="space-y-8">
+              <StorageSetupHelper />
+
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Brand Customization</h3>
                 <p className="text-gray-600 mb-6">Customize your organization's branding and appearance across all event pages.</p>
