@@ -41,7 +41,7 @@ const HeroCarousel = () => {
           
           const { data: organizerData, error: organizerError } = await supabase
             .from('organizers')
-            .select('id, organization_name, first_name, last_name, is_verified, avatar_url')
+            .select('id, organization_name, first_name, last_name, is_verified, avatar_url, logo_url')
             .in('id', organizerIds);
           
           console.log('📊 Organizer query result:', { 
@@ -73,7 +73,8 @@ const HeroCarousel = () => {
                 first_name,
                 last_name,
                 is_verified,
-                avatar_url
+                avatar_url,
+                logo_url
               )
             `)
             .eq('is_published', true)
@@ -330,9 +331,9 @@ const HeroCarousel = () => {
                 {/* Organizer Avatar - Top Position */}
                 <div className="flex items-center justify-center space-x-3 mb-8">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-2xl border-4 border-white/60 shadow-2xl overflow-hidden">
-                    {event.organizers?.avatar_url ? (
+                    {event.organizers?.logo_url ? (
                       <img
-                        src={event.organizers.avatar_url}
+                        src={event.organizers.logo_url}
                         alt={event.organizers?.organization_name || 'Organizer'}
                         className="w-full h-full object-cover"
                         onError={(e) => {

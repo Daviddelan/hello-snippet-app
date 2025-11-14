@@ -323,13 +323,24 @@ const EventDetailsPage = () => {
             )}
             
             <div className="flex items-center gap-3 mb-8">
-              <img
-                src="/hellosnippet_transparent.png"
-                alt="Organizer"
-                className="w-10 h-10 rounded-full border-2 border-purple-300"
-              />
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold text-lg border-2 border-purple-300 overflow-hidden">
+                {event.organizers?.logo_url ? (
+                  <img
+                    src={event.organizers.logo_url}
+                    alt={event.organizers?.organization_name || 'Organizer'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallbackText = (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase();
+                      e.currentTarget.parentElement!.innerHTML = `<span class="text-lg font-bold">${fallbackText}</span>`;
+                    }}
+                  />
+                ) : (
+                  (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase()
+                )}
+              </div>
               <span className="text-purple-800 font-semibold">
-                Organized by HelloSnippet Partner
+                Organized by {event.organizers?.organization_name || `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 'HelloSnippet Partner'}
               </span>
             </div>
             

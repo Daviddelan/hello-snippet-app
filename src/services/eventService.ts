@@ -92,7 +92,7 @@ export class EventService {
 
         const { data: organizersData, error: organizersError } = await client
           .from('organizers')
-          .select('id, organization_name, first_name, last_name, is_verified, avatar_url')
+          .select('id, organization_name, first_name, last_name, is_verified, avatar_url, logo_url')
           .in('id', organizerIds);
 
         if (!organizersError && organizersData) {
@@ -232,7 +232,18 @@ export class EventService {
     try {
       const { data, error } = await supabase
         .from('events')
-        .select('*')
+        .select(`
+          *,
+          organizers (
+            id,
+            organization_name,
+            first_name,
+            last_name,
+            is_verified,
+            avatar_url,
+            logo_url
+          )
+        `)
         .eq('id', eventId)
         .single();
 
