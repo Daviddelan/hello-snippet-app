@@ -71,23 +71,46 @@ const OrganizerDashboard = () => {
     loadOrganizerData();
   }, [navigate]);
 
-  // Auto-logout when leaving dashboard - prevents slow loading issues
+  // Intercept browser back button and other navigation attempts
   useEffect(() => {
-    const handleBeforeUnload = async () => {
-      // Only logout if navigating away from dashboard
-      if (!window.location.pathname.startsWith('/organizer-dashboard')) {
-        console.log('Leaving dashboard - logging out automatically');
+    let isNavigatingAway = false;
+
+    const handlePopState = async (e: PopStateEvent) => {
+      // Check if we're still in dashboard
+      if (window.location.pathname.startsWith('/dashboard/organizer')) {
+        return; // Stay in dashboard
+      }
+
+      // Trying to leave dashboard - ask for confirmation
+      const confirmed = window.confirm(
+        'Are you sure you want to leave the dashboard? You will be logged out for security reasons.'
+      );
+
+      if (confirmed) {
+        console.log('User confirmed - logging out and leaving dashboard');
+        isNavigatingAway = true;
         await supabase.auth.signOut();
+        // Navigation will proceed
+      } else {
+        console.log('User cancelled - staying in dashboard');
+        // Push dashboard back to history to keep user in dashboard
+        e.preventDefault();
+        window.history.pushState(null, '', '/dashboard/organizer');
+        navigate('/dashboard/organizer', { replace: true });
       }
     };
 
-    // Listen for navigation events
-    const handlePopState = async () => {
-      if (!window.location.pathname.startsWith('/organizer-dashboard')) {
-        console.log('Back button pressed - logging out automatically');
-        await supabase.auth.signOut();
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isNavigatingAway) {
+        // Show browser confirmation dialog
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
       }
     };
+
+    // Push initial state to enable back button interception
+    window.history.pushState(null, '', window.location.pathname);
 
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -96,7 +119,7 @@ const OrganizerDashboard = () => {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, []);
+  }, [navigate]);
 
   const handleCreateEvent = () => {
     setShowCreateModal(true);

@@ -35,15 +35,33 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, on
   ];
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    const confirmed = window.confirm(
+      'Are you sure you want to sign out? You will be logged out and redirected to the homepage.'
+    );
+
+    if (confirmed) {
+      console.log('User confirmed sign out');
+      await supabase.auth.signOut();
+      navigate('/');
+    } else {
+      console.log('User cancelled sign out');
+    }
   };
 
   const handleHomeClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log('Home clicked - logging out automatically');
-    await supabase.auth.signOut();
-    navigate('/');
+
+    const confirmed = window.confirm(
+      'Are you sure you want to leave the dashboard? You will be logged out for security reasons.'
+    );
+
+    if (confirmed) {
+      console.log('Home clicked - user confirmed - logging out automatically');
+      await supabase.auth.signOut();
+      navigate('/');
+    } else {
+      console.log('Home clicked - user cancelled - staying in dashboard');
+    }
   };
 
   const isActive = (href: string) => {
