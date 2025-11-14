@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import DiscoverPage from "./pages/DiscoverPage";
 import SignUpOrganizerPage from "./pages/SignUpOrganizerPage";
@@ -15,10 +15,28 @@ import AboutPage from "./pages/AboutPage";
 import UserTypeSelectionPage from "./pages/UserTypeSelectionPage";
 import SignUpAttendeePage from "./pages/SignUpAttendeePage";
 import AttendeeDashboard from "./pages/AttendeeDashboard";
+import { supabase } from "./lib/supabase";
+
+// Clear cache on all non-dashboard pages
+function CacheClearer() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const isDashboard = location.pathname.startsWith('/dashboard/organizer');
+
+    if (!isDashboard) {
+      console.log('🧹 Non-dashboard page - clearing all cache');
+      supabase.auth.signOut();
+    }
+  }, [location.pathname]);
+
+  return null;
+}
 
 function App() {
   return (
     <Router>
+      <CacheClearer />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/discover" element={<DiscoverPage />} />

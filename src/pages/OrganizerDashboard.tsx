@@ -71,46 +71,36 @@ const OrganizerDashboard = () => {
     loadOrganizerData();
   }, [navigate]);
 
-  // Intercept browser back button and other navigation attempts
+  // Intercept back button - MUST show confirmation
   useEffect(() => {
-    let isNavigatingAway = false;
+    // Push a state immediately to intercept back button
+    window.history.pushState(null, '', window.location.href);
 
-    const handlePopState = async (e: PopStateEvent) => {
-      // Check if we're still in dashboard
-      if (window.location.pathname.startsWith('/dashboard/organizer')) {
-        return; // Stay in dashboard
-      }
+    const handlePopState = () => {
+      // Immediately push again to stay on page during confirmation
+      window.history.pushState(null, '', window.location.href);
 
-      // Trying to leave dashboard - ask for confirmation
+      // Show confirmation
       const confirmed = window.confirm(
         'Are you sure you want to leave the dashboard? You will be logged out for security reasons.'
       );
 
       if (confirmed) {
-        console.log('User confirmed - logging out and leaving dashboard');
-        isNavigatingAway = true;
-        await supabase.auth.signOut();
-        // Navigation will proceed
+        console.log('✅ Back button: User confirmed - logging out');
+        supabase.auth.signOut().then(() => {
+          window.history.go(-2); // Go back 2 steps to actually leave
+        });
       } else {
-        console.log('User cancelled - staying in dashboard');
-        // Push dashboard back to history to keep user in dashboard
-        e.preventDefault();
-        window.history.pushState(null, '', '/dashboard/organizer');
-        navigate('/dashboard/organizer', { replace: true });
+        console.log('❌ Back button: User cancelled - staying in dashboard');
+        // Already pushed state above, so user stays here
       }
     };
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!isNavigatingAway) {
-        // Show browser confirmation dialog
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
-      }
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
     };
-
-    // Push initial state to enable back button interception
-    window.history.pushState(null, '', window.location.pathname);
 
     window.addEventListener('popstate', handlePopState);
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -119,7 +109,7 @@ const OrganizerDashboard = () => {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [navigate]);
+  }, []);
 
   const handleCreateEvent = () => {
     setShowCreateModal(true);
