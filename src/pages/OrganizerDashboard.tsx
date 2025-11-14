@@ -31,20 +31,20 @@ const OrganizerDashboard = () => {
         console.log('Loading organizer data...');
         console.log(import.meta.env.VITE_SUPABASE_URL)
         console.log(import.meta.env.VITE_SUPABASE_ANON_KEY)
-        
+
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+
         if (userError) {
           throw new Error(`User fetch error: ${userError.message}`);
         }
-        
+
         if (!user) {
           throw new Error('No authenticated user found');
         }
 
         console.log('Fetching organizer profile for user:', user.email);
         const organizerProfile = await OrganizerService.getOrganizerProfile(user.id);
-        
+
         if (!organizerProfile) {
           console.log('No organizer profile found, redirecting to complete profile');
           navigate('/complete-profile');
@@ -70,6 +70,33 @@ const OrganizerDashboard = () => {
 
     loadOrganizerData();
   }, [navigate]);
+
+  // Auto-logout when leaving dashboard - prevents slow loading issues
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      // Only logout if navigating away from dashboard
+      if (!window.location.pathname.startsWith('/organizer-dashboard')) {
+        console.log('Leaving dashboard - logging out automatically');
+        await supabase.auth.signOut();
+      }
+    };
+
+    // Listen for navigation events
+    const handlePopState = async () => {
+      if (!window.location.pathname.startsWith('/organizer-dashboard')) {
+        console.log('Back button pressed - logging out automatically');
+        await supabase.auth.signOut();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 
   const handleCreateEvent = () => {
     setShowCreateModal(true);

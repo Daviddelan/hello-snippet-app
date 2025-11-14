@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Calendar,
@@ -22,6 +22,7 @@ interface DashboardSidebarProps {
 
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, onCreateEvent }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { logoUrl, colors } = useTheme();
 
   const navigation = [
@@ -35,6 +36,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, on
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  const handleHomeClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('Home clicked - logging out automatically');
+    await supabase.auth.signOut();
+    navigate('/');
   };
 
   const isActive = (href: string) => {
@@ -48,7 +57,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, on
     <div className="flex h-full flex-col bg-white shadow-xl">
       {/* Logo and close button */}
       <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200">
-        <Link to="/" className="flex items-center space-x-2">
+        <a href="/" onClick={handleHomeClick} className="flex items-center space-x-2 cursor-pointer">
           {logoUrl ? (
             <img
               src={logoUrl}
@@ -62,7 +71,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, on
               className="h-8 w-auto"
             />
           )}
-        </Link>
+        </a>
         <button
           onClick={onClose}
           className="lg:hidden rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500"
