@@ -9,6 +9,7 @@ import Attendees from '../components/dashboard/Attendees';
 import PromoCodesMarketing from '../components/dashboard/PromoCodesMarketing';
 import Settings from '../components/dashboard/Settings';
 import CreateEventModal from '../components/dashboard/CreateEventModal';
+import ConfirmModal from '../components/ConfirmModal';
 import { supabase } from '../lib/supabase';
 import { OrganizerService } from '../services/organizerService';
 import type { Organizer } from '../lib/supabase';
@@ -23,6 +24,8 @@ const OrganizerDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showBackConfirm, setShowBackConfirm] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(false);
 
   useEffect(() => {
     const loadOrganizerData = async () => {
@@ -73,27 +76,12 @@ const OrganizerDashboard = () => {
 
   // Intercept back button - MUST show confirmation
   useEffect(() => {
-    // Push a state immediately to intercept back button
     window.history.pushState(null, '', window.location.href);
 
     const handlePopState = () => {
-      // Immediately push again to stay on page during confirmation
       window.history.pushState(null, '', window.location.href);
-
-      // Show confirmation
-      const confirmed = window.confirm(
-        'Are you sure you want to leave the dashboard? You will be logged out for security reasons.'
-      );
-
-      if (confirmed) {
-        console.log('✅ Back button: User confirmed - logging out');
-        supabase.auth.signOut().then(() => {
-          window.history.go(-2); // Go back 2 steps to actually leave
-        });
-      } else {
-        console.log('❌ Back button: User cancelled - staying in dashboard');
-        // Already pushed state above, so user stays here
-      }
+      setShowBackConfirm(true);
+      setPendingNavigation(true);
     };
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -110,6 +98,19 @@ const OrganizerDashboard = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
+
+  const handleBackConfirm = async () => {
+    console.log('✅ Back button: User confirmed - logging out');
+    setShowBackConfirm(false);
+    await supabase.auth.signOut();
+    window.history.go(-2);
+  };
+
+  const handleBackCancel = () => {
+    console.log('❌ Back button: User cancelled - staying in dashboard');
+    setShowBackConfirm(false);
+    setPendingNavigation(false);
+  };
 
   const handleCreateEvent = () => {
     setShowCreateModal(true);
@@ -217,6 +218,18 @@ const OrganizerDashboard = () => {
           onClose={() => setShowCreateModal(false)}
           organizerId={organizer?.id || ''}
           onEventCreated={handleEventCreated}
+        />
+
+        {/* Back Button Confirmation Modal */}
+        <ConfirmModal
+          isOpen={showBackConfirm}
+          title="Leave Dashboard?"
+          message="Are you sure you want to leave the dashboard? You will be logged out for security reasons."
+          confirmText="Yes, Log Out"
+          cancelText="Stay Here"
+          onConfirm={handleBackConfirm}
+          onCancel={handleBackCancel}
+          variant="warning"
         />
       </div>
     </ThemeProvider>

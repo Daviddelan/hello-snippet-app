@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../contexts/ThemeContext';
+import ConfirmModal from '../ConfirmModal';
 
 interface DashboardSidebarProps {
   isOpen: boolean;
@@ -24,6 +25,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, on
   const location = useLocation();
   const navigate = useNavigate();
   const { logoUrl, colors } = useTheme();
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [showHomeConfirm, setShowHomeConfirm] = useState(false);
 
   const navigation = [
     { name: 'Overview', href: '/dashboard/organizer', icon: LayoutDashboard },
@@ -34,34 +37,37 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, on
     { name: 'Settings', href: '/dashboard/organizer/settings', icon: Settings },
   ];
 
-  const handleSignOut = async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to sign out? You will be logged out and redirected to the homepage.'
-    );
-
-    if (confirmed) {
-      console.log('User confirmed sign out');
-      await supabase.auth.signOut();
-      navigate('/');
-    } else {
-      console.log('User cancelled sign out');
-    }
+  const handleSignOut = () => {
+    setShowSignOutConfirm(true);
   };
 
-  const handleHomeClick = async (e: React.MouseEvent) => {
+  const handleSignOutConfirm = async () => {
+    console.log('User confirmed sign out');
+    setShowSignOutConfirm(false);
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  const handleSignOutCancel = () => {
+    console.log('User cancelled sign out');
+    setShowSignOutConfirm(false);
+  };
+
+  const handleHomeClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    setShowHomeConfirm(true);
+  };
 
-    const confirmed = window.confirm(
-      'Are you sure you want to leave the dashboard? You will be logged out for security reasons.'
-    );
+  const handleHomeConfirm = async () => {
+    console.log('Home clicked - user confirmed - logging out automatically');
+    setShowHomeConfirm(false);
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
-    if (confirmed) {
-      console.log('Home clicked - user confirmed - logging out automatically');
-      await supabase.auth.signOut();
-      navigate('/');
-    } else {
-      console.log('Home clicked - user cancelled - staying in dashboard');
-    }
+  const handleHomeCancel = () => {
+    console.log('Home clicked - user cancelled - staying in dashboard');
+    setShowHomeConfirm(false);
   };
 
   const isActive = (href: string) => {
@@ -158,6 +164,30 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ isOpen, onClose, on
           Sign Out
         </button>
       </div>
+
+      {/* Sign Out Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showSignOutConfirm}
+        title="Sign Out?"
+        message="Are you sure you want to sign out? You will be logged out and redirected to the homepage."
+        confirmText="Yes, Sign Out"
+        cancelText="Cancel"
+        onConfirm={handleSignOutConfirm}
+        onCancel={handleSignOutCancel}
+        variant="danger"
+      />
+
+      {/* Home Navigation Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showHomeConfirm}
+        title="Leave Dashboard?"
+        message="Are you sure you want to leave the dashboard? You will be logged out for security reasons."
+        confirmText="Yes, Log Out"
+        cancelText="Stay Here"
+        onConfirm={handleHomeConfirm}
+        onCancel={handleHomeCancel}
+        variant="warning"
+      />
     </div>
   );
 };
