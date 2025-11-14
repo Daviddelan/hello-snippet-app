@@ -22,7 +22,6 @@ const SignInPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -289,25 +288,15 @@ const SignInPage = () => {
                     </div>
                   </div>
 
-                  {/* Remember Me & Forgot Password */}
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        name="rememberMe"
-                        checked={formData.rememberMe}
-                        onChange={handleInputChange}
-                        className="rounded border-gray-300 text-primary-500 focus:ring-primary-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-600">Remember me</span>
-                    </label>
-                    <Link
-                      to="/forgot-password"
-                      className="text-sm text-primary-500 hover:text-primary-600 font-medium"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
+                  {/* Forgot Password */}
+<div className="flex items-center justify-end">
+  <Link
+    to="/forgot-password"
+    className="text-sm text-primary-500 hover:text-primary-600 font-medium"
+  >
+    Forgot password?
+  </Link>
+</div>
 
                   {/* Submit Button */}
                   <button
