@@ -1,9 +1,13 @@
-import { supabase } from '../lib/supabase';
+import { supabase, supabasePublic } from '../lib/supabase';
 import type { Event, CreateEventData } from '../lib/supabase';
 
 export class EventService {
   static get supabase() {
     return supabase;
+  }
+
+  static get supabasePublic() {
+    return supabasePublic;
   }
   /**
    * Create a new event
@@ -47,8 +51,11 @@ export class EventService {
     try {
       console.log('🔍 EventService: Fetching published events...', { limit, includeOrganizerInfo });
 
+      // Use public client to bypass auth session and avoid slow RLS checks
+      const client = supabasePublic;
+
       // First, fetch events without joining organizers (much faster)
-      const { data: eventsData, error: eventsError } = await supabase
+      const { data: eventsData, error: eventsError } = await client
         .from('events')
         .select('*')
         .eq('is_published', true)
@@ -83,7 +90,7 @@ export class EventService {
       if (includeOrganizerInfo && eventsData && eventsData.length > 0) {
         const organizerIds = [...new Set(eventsData.map(e => e.organizer_id))];
 
-        const { data: organizersData, error: organizersError } = await supabase
+        const { data: organizersData, error: organizersError } = await client
           .from('organizers')
           .select('id, organization_name, first_name, last_name, is_verified, avatar_url')
           .in('id', organizerIds);

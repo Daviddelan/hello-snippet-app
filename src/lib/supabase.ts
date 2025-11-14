@@ -9,6 +9,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Create a separate client for public queries that bypasses auth session
+// This prevents slow RLS checks when authenticated users view public content
+export const supabasePublic = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+  global: {
+    headers: {
+      'x-public-access': 'true'
+    }
+  }
+});
+
 // Database types
 export interface Organizer {
   id: string;
