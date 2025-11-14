@@ -25,7 +25,6 @@ function CacheClearer() {
     const isDashboard = location.pathname.startsWith('/dashboard/organizer');
 
     if (!isDashboard) {
-      console.log('🧹 Non-dashboard page - clearing all cache');
       supabase.auth.signOut();
     }
   }, [location.pathname]);
