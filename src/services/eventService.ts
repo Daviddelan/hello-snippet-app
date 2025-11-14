@@ -41,72 +41,76 @@ export class EventService {
 
   /**
    * Get published events for public display
+   * Uses separate queries to avoid slow RLS checks when user is authenticated
    */
   static async getPublishedEvents(limit: number = 10, includeOrganizerInfo: boolean = true) {
     try {
       console.log('🔍 EventService: Fetching published events...', { limit, includeOrganizerInfo });
-      
-      // Try to fetch published events with proper filtering
-      const { data, error } = await supabase
+
+      // First, fetch events without joining organizers (much faster)
+      const { data: eventsData, error: eventsError } = await supabase
         .from('events')
-        .select(includeOrganizerInfo ? `
-          *,
-          organizers (
-            id,
-            organization_name,
-            first_name,
-            last_name,
-            is_verified,
-            avatar_url
-          )
-        ` : '*')
+        .select('*')
         .eq('is_published', true)
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      console.log('📊 EventService: Query result:', { data: data?.length, error });
-      
-      if (error) {
-        console.error('❌ EventService: Full error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint
-        });
-        
-        // If table doesn't exist, return empty array instead of error
-        if (error.code === '42P01') {
-          console.warn('❌ Events table does not exist yet. Please run the database migration.');
+      if (eventsError) {
+        console.error('❌ EventService: Events query error:', eventsError);
+
+        // If table doesn't exist, return empty array
+        if (eventsError.code === '42P01') {
+          console.warn('❌ Events table does not exist yet.');
           return {
             success: true,
-            message: 'Events table not found - database migration needed',
+            message: 'Events table not found',
             events: []
           };
         }
-        
-        // If it's an RLS error, provide specific guidance
-        if (error.code === '42501' || error.message.includes('RLS') || error.message.includes('policy')) {
-          console.warn('❌ RLS policy blocking access to events');
-          return {
-            success: false,
-            message: 'RLS policy blocking access - need to fix policies',
-            error: 'Row Level Security is blocking access to published events. Please check your RLS policies.',
-            events: []
-          };
-        }
-        
-        console.error('❌ EventService: Database error:', error);
-        throw new Error(`Published events fetch error: ${error.message}`);
-      }      console.log('✅ EventService: Successfully fetched', data?.length || 0, 'events');
-      if (data && data.length > 0) {
-        console.log('📋 Events found:', data.map((e: any) => `"${e.title}" (status: ${e.status}, published: ${e.is_published})`));
+
+        return {
+          success: false,
+          message: 'Failed to load events',
+          error: eventsError.message,
+          events: []
+        };
       }
-      
+
+      let data = eventsData;
+
+      // If organizer info is needed, fetch it separately to avoid slow joins
+      if (includeOrganizerInfo && eventsData && eventsData.length > 0) {
+        const organizerIds = [...new Set(eventsData.map(e => e.organizer_id))];
+
+        const { data: organizersData, error: organizersError } = await supabase
+          .from('organizers')
+          .select('id, organization_name, first_name, last_name, is_verified, avatar_url')
+          .in('id', organizerIds);
+
+        if (!organizersError && organizersData) {
+          // Map organizers to events
+          const organizersMap = new Map(organizersData.map(o => [o.id, o]));
+          data = eventsData.map(event => ({
+            ...event,
+            organizers: organizersMap.get(event.organizer_id) || null
+          }));
+        }
+      }
+
+      const { data: finalData, error } = { data, error: null };
+
+      console.log('📊 EventService: Query result:', { data: finalData?.length, error });
+
+      console.log('✅ EventService: Successfully fetched', finalData?.length || 0, 'events');
+      if (finalData && finalData.length > 0) {
+        console.log('📋 Events found:', finalData.map((e: any) => `"${e.title}" (status: ${e.status}, published: ${e.is_published})`));
+      }
+
       return {
         success: true,
-        message: `Found ${data?.length || 0} published events`,
-        events: data || []
+        message: `Found ${finalData?.length || 0} published events`,
+        events: finalData || []
       };
     } catch (error) {
       console.error('❌ EventService: Published events fetch error:', error);
