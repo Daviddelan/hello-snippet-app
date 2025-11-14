@@ -327,9 +327,47 @@ const HeroCarousel = () => {
             {/* Event Content Overlay */}
             <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-6 sm:p-8 lg:p-12">
               <div className="max-w-5xl mx-auto">
+                {/* Organizer Avatar - Top Position */}
+                <div className="flex items-center justify-center space-x-3 mb-8">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-2xl border-4 border-white/60 shadow-2xl overflow-hidden">
+                    {event.organizers?.avatar_url ? (
+                      <img
+                        src={event.organizers.avatar_url}
+                        alt={event.organizers?.organization_name || 'Organizer'}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const fallbackText = (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase();
+                          e.currentTarget.parentElement!.innerHTML = `<span class="text-2xl font-bold">${fallbackText}</span>`;
+                        }}
+                      />
+                    ) : (
+                      (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white/70 text-sm font-medium">Organized by</p>
+                    <p className="text-white font-bold text-xl drop-shadow-lg">
+                      {event.organizers?.organization_name ||
+                       `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() ||
+                       'Unknown Organizer'}
+                    </p>
+                    {event.organizers?.is_verified && (
+                      <div className="flex items-center mt-0.5">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center mr-1.5">
+                          <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span className="text-white/80 text-xs font-medium">Verified</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Event Category Badge */}
                 <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-4 py-2 text-white mb-6">
-                  <Calendar className="w-4 h-1" />
+                  <Calendar className="w-4 h-4" />
                   <span className="text-sm font-medium">{event.category}</span>
                 </div>
 
@@ -403,45 +441,6 @@ const HeroCarousel = () => {
                         {event.price === 0 ? 'No Cost' : 'Per Ticket'}
                       </p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Organizer Info */}
-                <div className="flex items-center justify-center space-x-3 mb-8">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold text-2xl border-4 border-white/60 shadow-2xl overflow-hidden">
-                    {event.organizers?.avatar_url ? (
-                      <img 
-                        src={event.organizers.avatar_url} 
-                        alt={event.organizers?.organization_name || 'Organizer'}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback to initials if image fails to load
-                          e.currentTarget.style.display = 'none';
-                          const fallbackText = (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase();
-                          e.currentTarget.parentElement!.innerHTML = `<span class="text-2xl font-bold">${fallbackText}</span>`;
-                        }}
-                      />
-                    ) : (
-                      (event.organizers?.organization_name || event.organizers?.first_name || 'O').charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-white/90 text-base font-medium tracking-wide">Organized by</p>
-                    <p className="text-white font-bold text-2xl drop-shadow-lg">
-                      {event.organizers?.organization_name || 
-                       `${event.organizers?.first_name || ''} ${event.organizers?.last_name || ''}`.trim() || 
-                       'Unknown Organizer'}
-                    </p>
-                    {event.organizers?.is_verified && (
-                      <div className="flex items-center mt-1">
-                        <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
-                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <span className="text-white/90 text-sm font-medium">Verified Organizer</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
