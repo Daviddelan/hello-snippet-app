@@ -12,126 +12,86 @@ const AuthCallbackPage = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('Auth callback page loaded');
-        console.log('Current URL:', window.location.href);
-        console.log('URL hash:', window.location.hash);
-        console.log('URL search:', window.location.search);
-        
-        // Handle the OAuth callback
+        console.log('🔐 Auth callback page loaded');
+        console.log('📍 Current URL:', window.location.href);
+        console.log('🔗 URL hash:', window.location.hash);
+        console.log('🔍 URL search:', window.location.search);
+
+        // First check if there's an error in the URL
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const errorParam = hashParams.get('error');
+        const errorDescription = hashParams.get('error_description');
+
+        if (errorParam) {
+          console.error('❌ OAuth error in URL:', errorParam, errorDescription);
+          throw new Error(errorDescription || errorParam);
+        }
+
+        // Check for auth code or token in URL (PKCE flow or implicit flow)
+        const code = new URLSearchParams(window.location.search).get('code');
+        const accessToken = hashParams.get('access_token');
+
+        console.log('🔑 Auth code present:', !!code);
+        console.log('🎫 Access token present:', !!accessToken);
+
+        // If we have a code (PKCE flow), exchange it for a session
+        if (code) {
+          console.log('📦 Exchanging code for session...');
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+          if (error) {
+            console.error('❌ Code exchange error:', error);
+            throw error;
+          }
+
+          if (data.session) {
+            console.log('✅ Session established from code exchange');
+            await handleSuccessfulAuth(data.session.user);
+            return;
+          }
+        }
+
+        // Otherwise, get the current session
+        console.log('🔍 Checking for existing session...');
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        
-        console.log('Session data:', sessionData);
-        console.log('Session error:', sessionError);
-        
+
         if (sessionError) {
-          console.error('Session error:', sessionError);
+          console.error('❌ Session error:', sessionError);
           throw sessionError;
         }
 
         if (sessionData.session) {
-          const user = sessionData.session.user;
-          console.log('User found in session:', user.email);
-          
-          // Check if user already has an organizer profile
-          const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
-          
-          if (existingProfile) {
-            if (existingProfile.profile_completed) {
-              // Existing user with complete profile - redirect to dashboard
-              console.log('Complete organizer profile found, redirecting to dashboard');
-              setStatus('success');
-              setMessage('Welcome back! Redirecting to your dashboard...');
-              setTimeout(() => navigate('/dashboard/organizer'), 1500);
-            } else {
-              // Existing user with incomplete profile - redirect to complete profile
-              console.log('Incomplete organizer profile found, redirecting to complete profile');
-              setStatus('success');
-              setMessage('Please complete your profile...');
-              setTimeout(() => navigate('/complete-profile'), 1500);
-            }
-          } else {
-            // New user from Google OAuth - redirect to complete profile
-            console.log('No organizer profile found, redirecting to complete profile');
-            setStatus('success');
-            setMessage('Account created successfully! Please complete your profile...');
-            setTimeout(() => navigate('/complete-profile'), 1500);
-          }
-        } else {
-          console.log('No session found, checking URL hash for auth data');
-          
-          // Wait longer for Supabase to process the OAuth callback
+          console.log('✅ Session found:', sessionData.session.user.email);
+          await handleSuccessfulAuth(sessionData.session.user);
+          return;
+        }
+
+        // If no session yet but we have auth data in URL, wait for Supabase to process it
+        if (accessToken || window.location.hash) {
+          console.log('⏳ Auth data in URL, waiting for Supabase to process...');
+
+          // Wait for Supabase to automatically process the callback
           await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Try to get session again after waiting
-          const { data: retrySessionData, error: retrySessionError } = await supabase.auth.getSession();
-          
-          if (retrySessionError) {
-            throw retrySessionError;
-          }
-          
-          if (retrySessionData.session) {
-            console.log('Session found after retry:', retrySessionData.session.user.email);
-            const user = retrySessionData.session.user;
-            const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
-            
-            if (existingProfile) {
-              if (existingProfile.profile_completed) {
-                setStatus('success');
-                setMessage('Welcome back! Redirecting to your dashboard...');
-                setTimeout(() => navigate('/dashboard/organizer'), 1500);
-              } else {
-                setStatus('success');
-                setMessage('Please complete your profile...');
-                setTimeout(() => navigate('/complete-profile'), 1500);
-              }
-            } else {
-              setStatus('success');
-              setMessage('Account created successfully! Please complete your profile...');
-              setTimeout(() => navigate('/complete-profile'), 1500);
-            }
-          } else {
-            // Check URL hash for OAuth data
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            const error = hashParams.get('error');
-            
-            if (error) {
-              throw new Error(`OAuth error: ${error}`);
-            }
-            
-            if (accessToken) {
-              console.log('Access token found in URL, waiting for session...');
-              // Wait even longer for session to be established
-              await new Promise(resolve => setTimeout(resolve, 3000));
-              
-              const { data: finalSessionData } = await supabase.auth.getSession();
-              if (finalSessionData.session) {
-                // Instead of reloading, try to process the session directly
-                const user = finalSessionData.session.user;
-                const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
-                
-                if (existingProfile && existingProfile.profile_completed) {
-                  setStatus('success');
-                  setMessage('Welcome back! Redirecting to your dashboard...');
-                  setTimeout(() => navigate('/dashboard/organizer'), 1500);
-                } else {
-                  setStatus('success');
-                  setMessage('Please complete your profile...');
-                  setTimeout(() => navigate('/complete-profile'), 1500);
-                }
-                return;
-              }
-            }
-            
-            throw new Error('No authentication data found. Please try signing in again.');
+
+          const { data: retryData } = await supabase.auth.getSession();
+
+          if (retryData.session) {
+            console.log('✅ Session established after wait');
+            await handleSuccessfulAuth(retryData.session.user);
+            return;
           }
         }
+
+        // If we still don't have a session, throw an error
+        console.error('❌ No session found after all attempts');
+        throw new Error('No authentication data found. Please try signing in again.');
+
       } catch (error) {
-        console.error('Auth callback error:', error);
+        console.error('❌ Auth callback error:', error);
         setStatus('error');
-        
+
         let errorMessage = 'Authentication failed. Please try signing in again.';
-        
+
         if (error instanceof Error) {
           if (error.message.includes('Invalid login credentials')) {
             errorMessage = 'Invalid credentials. Please check your login information.';
@@ -140,19 +100,43 @@ const AuthCallbackPage = () => {
           } else if (error.message.includes('access_denied')) {
             errorMessage = 'Access denied. You may have cancelled the Google sign-in process.';
           } else {
-            errorMessage = `Authentication error: ${error.message}`;
+            errorMessage = error.message;
           }
         }
-        
+
         setMessage(errorMessage);
         setTimeout(() => navigate('/signin'), 3000);
       }
     };
 
-    // Add a longer delay to ensure the URL is fully loaded and OAuth is processed
-    const timer = setTimeout(handleAuthCallback, 1500);
-    
-    return () => clearTimeout(timer);
+    // Helper function to handle successful authentication
+    const handleSuccessfulAuth = async (user: any) => {
+      console.log('👤 Processing authenticated user:', user.email);
+
+      // Check if user already has an organizer profile
+      const existingProfile = await OrganizerService.getOrganizerProfile(user.id);
+
+      if (existingProfile) {
+        if (existingProfile.profile_completed) {
+          console.log('✅ Complete organizer profile found, redirecting to dashboard');
+          setStatus('success');
+          setMessage('Welcome back! Redirecting to your dashboard...');
+          setTimeout(() => navigate('/dashboard/organizer'), 1500);
+        } else {
+          console.log('⚠️ Incomplete organizer profile found, redirecting to complete profile');
+          setStatus('success');
+          setMessage('Please complete your profile...');
+          setTimeout(() => navigate('/complete-profile'), 1500);
+        }
+      } else {
+        console.log('🆕 No organizer profile found, redirecting to complete profile');
+        setStatus('success');
+        setMessage('Account created successfully! Please complete your profile...');
+        setTimeout(() => navigate('/complete-profile'), 1500);
+      }
+    };
+
+    handleAuthCallback();
   }, [navigate]);
 
   return (
