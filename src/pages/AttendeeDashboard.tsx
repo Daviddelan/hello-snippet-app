@@ -234,7 +234,7 @@ const AttendeeDashboard = () => {
                         </div>
                         <div className="flex items-center">
                           <Ticket className="h-4 w-4 mr-2" />
-                          {event.price === 0 ? 'Free' : `$${event.price}`}
+                          {event.price === 0 ? 'Free' : `GH₵${event.price}`}
                         </div>
                       </div>
                       <button className="w-full mt-3 bg-gradient-to-r from-secondary-500 to-primary-500 text-white py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all">
@@ -284,7 +284,7 @@ const AttendeeDashboard = () => {
                         </div>
                         <div className="flex items-center">
                           <Ticket className="h-4 w-4 mr-1" />
-                          {event.price === 0 ? 'Free' : `$${event.price}`}
+                          {event.price === 0 ? 'Free' : `GH₵${event.price}`}
                         </div>
                       </div>
                     </div>

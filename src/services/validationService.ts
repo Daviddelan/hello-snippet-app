@@ -143,7 +143,7 @@ export class ValidationService {
     if (eventData.price < 0) {
       errors.push('Event price cannot be negative');
     } else if (eventData.price > 10000) {
-      warnings.push('Event price is very high (over $10,000)');
+      warnings.push('Event price is very high (over GH₵10,000)');
     }
 
     // Category validation

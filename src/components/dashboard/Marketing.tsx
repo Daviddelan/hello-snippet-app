@@ -196,7 +196,7 @@ const Marketing: React.FC<MarketingProps> = ({ organizer }) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-purple-600">Discount Given</p>
-                      <p className="text-2xl font-bold text-purple-900">$2,340</p>
+                      <p className="text-2xl font-bold text-purple-900">GH₵2,340</p>
                     </div>
                     <DollarSign className="h-8 w-8 text-purple-500" />
                   </div>

@@ -324,7 +324,7 @@ const DiscoverPage = () => {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-lg">
-                  {selectedEvent.price === 0 ? 'FREE EVENT' : `₵${selectedEvent.price}`}
+                  {selectedEvent.price === 0 ? 'FREE EVENT' : `GH₵${selectedEvent.price}`}
                 </div>
               </div>
 
@@ -415,7 +415,7 @@ const DiscoverPage = () => {
                     ) : (
                       <>
                         <CreditCard className="w-6 h-6" />
-                        Register & Pay ₵{selectedEvent.price}
+                        Register & Pay GH₵{selectedEvent.price}
                       </>
                     )}
                   </button>

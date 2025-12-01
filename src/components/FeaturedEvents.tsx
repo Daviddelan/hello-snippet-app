@@ -197,7 +197,7 @@ const FeaturedEvents = () => {
                   {/* Price Badge */}
                   <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-xl px-3 py-2">
                     <span className="text-sm font-bold text-primary-500">
-                      {event.price === 0 ? "FREE" : `$${event.price}`}
+                      {event.price === 0 ? "FREE" : `GH₵${event.price}`}
                     </span>
                   </div>
 
