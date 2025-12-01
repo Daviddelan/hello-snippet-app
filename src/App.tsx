@@ -17,14 +17,32 @@ import SignUpAttendeePage from "./pages/SignUpAttendeePage";
 import AttendeeDashboard from "./pages/AttendeeDashboard";
 import { supabase } from "./lib/supabase";
 
-// Clear cache on all non-dashboard pages
+// Clear cache/session ONLY on specific public pages, avoiding auth flows
 function CacheClearer() {
   const location = useLocation();
 
   useEffect(() => {
-    const isDashboard = location.pathname.startsWith('/dashboard/organizer');
+    // List of paths where the user should definitely NOT be signed out
+    const protectedPrefixes = [
+      '/dashboard', 
+      '/auth/callback', 
+      '/complete-profile', 
+      '/create-event'
+    ];
 
-    if (!isDashboard) {
+    // Check if the current path starts with any of the protected prefixes
+    const isProtectedPath = protectedPrefixes.some(prefix => 
+      location.pathname.startsWith(prefix)
+    );
+
+    // Only sign out if we are NOT on a protected path
+    // AND we are on a known public auth path (optional, prevents random signouts)
+    const isPublicAuthPath = ['/signin', '/signup'].some(path => 
+      location.pathname.startsWith(path)
+    );
+
+    if (!isProtectedPath && isPublicAuthPath) {
+      // console.log('Signing out on public page:', location.pathname);
       supabase.auth.signOut();
     }
   }, [location.pathname]);
