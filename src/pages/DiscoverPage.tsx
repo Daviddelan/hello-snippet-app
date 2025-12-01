@@ -48,6 +48,8 @@ const DiscoverPage = () => {
   });
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+
     const query = searchParams.get('q') || '';
     const location = searchParams.get('location') || '';
     const startDate = searchParams.get('startDate') || '';
