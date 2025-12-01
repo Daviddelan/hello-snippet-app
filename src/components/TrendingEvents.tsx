@@ -173,7 +173,7 @@ const TrendingEvents = () => {
                         : 'shadow-lg hover:shadow-xl'
                     }`}
                     style={{
-                      height: isHovered ? '400px' : '200px',
+                      height: isHovered ? '500px' : '300px',
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                     }}
                   >
