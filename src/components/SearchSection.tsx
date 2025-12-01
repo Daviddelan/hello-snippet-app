@@ -1,23 +1,214 @@
-import React, { useState } from 'react';
-import { Search, MapPin, Calendar, Filter, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, MapPin, Calendar, Filter, Sparkles, X, Loader } from 'lucide-react';
+import { EventService } from '../services/eventService';
 
 const SearchSection = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [location, setLocation] = useState('');
-  const [date, setDate] = useState('');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  const [eventSuggestions, setEventSuggestions] = useState<string[]>([]);
+  const [locationSuggestions, setLocationSuggestions] = useState<string[]>([]);
+  const [showEventSuggestions, setShowEventSuggestions] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const eventSuggestionsRef = useRef<HTMLDivElement>(null);
+  const locationSuggestionsRef = useRef<HTMLDivElement>(null);
 
   const popularSearches = [
     "Tech Conferences",
-    "Music Festivals", 
+    "Music Festivals",
     "Business Networking",
     "Art Exhibitions",
     "Food & Wine",
-    "Fitness Classes"
+    "Fitness Classes",
+    "Sports Events",
+    "Comedy Shows"
   ];
+
+  const ghanaianCities = [
+    "Accra", "Kumasi", "Tamale", "Takoradi", "Cape Coast",
+    "Sunyani", "Koforidua", "Ho", "Wa", "Bolgatanga",
+    "Tema", "Obuasi", "Teshie", "Nungua", "Madina",
+    "East Legon", "Cantonments", "Labone", "Airport Residential"
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        eventSuggestionsRef.current &&
+        !eventSuggestionsRef.current.contains(event.target as Node) &&
+        !searchInputRef.current?.contains(event.target as Node)
+      ) {
+        setShowEventSuggestions(false);
+      }
+      if (
+        locationSuggestionsRef.current &&
+        !locationSuggestionsRef.current.contains(event.target as Node) &&
+        !locationInputRef.current?.contains(event.target as Node)
+      ) {
+        setShowLocationSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      fetchEventSuggestions(searchQuery);
+    } else {
+      setEventSuggestions([]);
+      setShowEventSuggestions(false);
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (location.length >= 2) {
+      fetchLocationSuggestions(location);
+    } else {
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
+    }
+  }, [location]);
+
+  const fetchEventSuggestions = async (query: string) => {
+    const result = await EventService.getPublishedEvents(50, true);
+    if (result.success && result.events) {
+      const queryLower = query.toLowerCase();
+
+      const titleMatches = result.events
+        .filter(event => event.title.toLowerCase().includes(queryLower))
+        .map(event => event.title)
+        .slice(0, 3);
+
+      const categoryMatches = result.events
+        .filter(event => event.category.toLowerCase().includes(queryLower))
+        .map(event => event.category)
+        .filter((cat, index, self) => self.indexOf(cat) === index)
+        .slice(0, 3);
+
+      const descMatches = result.events
+        .filter(event => event.description?.toLowerCase().includes(queryLower))
+        .map(event => event.title)
+        .slice(0, 2);
+
+      const allSuggestions = [
+        ...titleMatches,
+        ...categoryMatches,
+        ...descMatches
+      ].filter((item, index, self) => self.indexOf(item) === index).slice(0, 5);
+
+      setEventSuggestions(allSuggestions);
+      setShowEventSuggestions(allSuggestions.length > 0);
+    }
+  };
+
+  const fetchLocationSuggestions = (query: string) => {
+    const queryLower = query.toLowerCase();
+    const matches = ghanaianCities
+      .filter(city => city.toLowerCase().includes(queryLower))
+      .slice(0, 5);
+
+    setLocationSuggestions(matches);
+    setShowLocationSuggestions(matches.length > 0);
+  };
+
+  const detectUserLocation = () => {
+    setIsLoadingLocation(true);
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+
+            const city = data.address.city ||
+                        data.address.town ||
+                        data.address.village ||
+                        data.address.state ||
+                        'Ghana';
+
+            setLocation(city);
+          } catch (error) {
+            setLocation('Accra, Ghana');
+          } finally {
+            setIsLoadingLocation(false);
+          }
+        },
+        (error) => {
+          setLocation('Accra, Ghana');
+          setIsLoadingLocation(false);
+        }
+      );
+    } else {
+      setLocation('Accra, Ghana');
+      setIsLoadingLocation(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!location) {
+      detectUserLocation();
+    }
+  }, []);
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('q', searchQuery);
+    if (location) params.set('location', location);
+    if (dateRange.start) params.set('startDate', dateRange.start);
+    if (dateRange.end) params.set('endDate', dateRange.end);
+
+    navigate(`/discover?${params.toString()}`);
+  };
+
+  const handlePopularSearchClick = (search: string) => {
+    setSearchQuery(search);
+    const params = new URLSearchParams();
+    params.set('q', search);
+    if (location) params.set('location', location);
+    navigate(`/discover?${params.toString()}`);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  const clearDateRange = () => {
+    setDateRange({ start: '', end: '' });
+    setShowDatePicker(false);
+  };
+
+  const formatDateDisplay = () => {
+    if (!dateRange.start && !dateRange.end) return 'Date Range';
+    if (dateRange.start && !dateRange.end) {
+      return new Date(dateRange.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    if (dateRange.start && dateRange.end) {
+      const start = new Date(dateRange.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const end = new Date(dateRange.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return `${start} - ${end}`;
+    }
+    return 'Date Range';
+  };
 
   return (
     <section className="py-16 bg-white relative overflow-hidden">
-      {/* Background Elements */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-primary-500"></div>
         <div className="absolute bottom-20 right-20 w-24 h-24 rounded-full bg-secondary-500"></div>
@@ -37,65 +228,165 @@ const SearchSection = () => {
           </p>
         </div>
 
-        {/* Enhanced Search Bar */}
         <div className="max-w-4xl mx-auto mb-12">
           <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-2">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-2">
-              {/* Search Input */}
               <div className="lg:col-span-2 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => searchQuery.length >= 2 && setShowEventSuggestions(true)}
+                  onKeyPress={handleKeyPress}
                   placeholder="Search events, keywords, or categories..."
                   className="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-0 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
                 />
+
+                {showEventSuggestions && eventSuggestions.length > 0 && (
+                  <div
+                    ref={eventSuggestionsRef}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto"
+                  >
+                    {eventSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setSearchQuery(suggestion);
+                          setShowEventSuggestions(false);
+                        }}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center space-x-3 first:rounded-t-2xl last:rounded-b-2xl"
+                      >
+                        <Search className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-900">{suggestion}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Location Input */}
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                {isLoadingLocation && (
+                  <Loader className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 animate-spin z-10" />
+                )}
                 <input
+                  ref={locationInputRef}
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
+                  onFocus={() => location.length >= 2 && setShowLocationSuggestions(true)}
+                  onKeyPress={handleKeyPress}
                   placeholder="Location"
-                  className="w-full pl-12 pr-4 py-4 text-lg rounded-2xl border-0 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                  className="w-full pl-12 pr-10 py-4 text-lg rounded-2xl border-0 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
                 />
+
+                {showLocationSuggestions && locationSuggestions.length > 0 && (
+                  <div
+                    ref={locationSuggestionsRef}
+                    className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto"
+                  >
+                    {locationSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setLocation(suggestion);
+                          setShowLocationSuggestions(false);
+                        }}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center space-x-3 first:rounded-t-2xl last:rounded-b-2xl"
+                      >
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-900">{suggestion}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Search Button */}
-              <button className="group bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2">
+              <button
+                onClick={handleSearch}
+                className="group bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center space-x-2"
+              >
                 <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 <span className="hidden sm:inline">Search</span>
               </button>
             </div>
           </div>
 
-          {/* Advanced Filters */}
           <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-            <button className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200">
-              <Calendar className="w-4 h-4" />
-              <span>Date Range</span>
-            </button>
-            <button className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200">
+            <div className="relative">
+              <button
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>{formatDateDisplay()}</span>
+                {(dateRange.start || dateRange.end) && (
+                  <X
+                    className="w-4 h-4 ml-2 hover:text-red-500"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearDateRange();
+                    }}
+                  />
+                )}
+              </button>
+
+              {showDatePicker && (
+                <div className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-xl border border-gray-200 p-4 z-50 min-w-[300px]">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={dateRange.start}
+                        onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        End Date
+                      </label>
+                      <input
+                        type="date"
+                        value={dateRange.end}
+                        onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                        min={dateRange.start}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      />
+                    </div>
+                    <button
+                      onClick={() => setShowDatePicker(false)}
+                      className="w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleSearch}
+              className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200"
+            >
               <Filter className="w-4 h-4" />
-              <span>Category</span>
-            </button>
-            <button className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-colors duration-200">
-              <span>Price Range</span>
+              <span>More Filters</span>
             </button>
           </div>
         </div>
 
-        {/* Popular Searches */}
         <div className="text-center">
           <p className="text-gray-600 mb-4">Popular searches:</p>
           <div className="flex flex-wrap justify-center gap-3">
             {popularSearches.map((search, index) => (
               <button
                 key={index}
+                onClick={() => handlePopularSearchClick(search)}
                 className="bg-gradient-to-r from-primary-50 to-secondary-50 hover:from-primary-100 hover:to-secondary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105"
               >
                 {search}

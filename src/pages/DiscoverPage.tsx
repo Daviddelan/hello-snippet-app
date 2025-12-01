@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   MapPin,
@@ -31,10 +31,13 @@ interface EventWithOrganizer extends Event {
 
 const DiscoverPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [events, setEvents] = useState<EventWithOrganizer[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventWithOrganizer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [locationQuery, setLocationQuery] = useState('');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedEvent, setSelectedEvent] = useState<EventWithOrganizer | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -45,12 +48,21 @@ const DiscoverPage = () => {
   });
 
   useEffect(() => {
+    const query = searchParams.get('q') || '';
+    const location = searchParams.get('location') || '';
+    const startDate = searchParams.get('startDate') || '';
+    const endDate = searchParams.get('endDate') || '';
+
+    setSearchQuery(query);
+    setLocationQuery(location);
+    setDateRange({ start: startDate, end: endDate });
+
     loadEvents();
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     applyFilters();
-  }, [searchQuery, filters, events]);
+  }, [searchQuery, locationQuery, dateRange, filters, events]);
 
   const loadEvents = async () => {
     setIsLoading(true);
@@ -73,6 +85,24 @@ const DiscoverPage = () => {
         event.category.toLowerCase().includes(query) ||
         event.description?.toLowerCase().includes(query)
       );
+    }
+
+    if (locationQuery) {
+      const locQuery = locationQuery.toLowerCase();
+      filtered = filtered.filter(event =>
+        event.location.toLowerCase().includes(locQuery)
+      );
+    }
+
+    if (dateRange.start) {
+      const startDate = new Date(dateRange.start);
+      filtered = filtered.filter(event => new Date(event.start_date) >= startDate);
+    }
+
+    if (dateRange.end) {
+      const endDate = new Date(dateRange.end);
+      endDate.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(event => new Date(event.start_date) <= endDate);
     }
 
     if (filters.category !== 'all') {
