@@ -436,7 +436,7 @@ const DiscoverPage = () => {
 
                 <div className="flex gap-4">
                   <button
-                    onClick={() => navigate(`/events/${selectedEvent.id}`)}
+                    onClick={() => navigate(`/event/${selectedEvent.id}`)}
                     className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     {selectedEvent.price === 0 ? (

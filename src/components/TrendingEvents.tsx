@@ -70,7 +70,7 @@ const TrendingEvents = () => {
   };
 
   const handleEventClick = (eventId: string) => {
-    navigate(`/events/${eventId}`);
+    navigate(`/event/${eventId}`);
   };
 
   const handleMouseEnter = (index: number) => {
