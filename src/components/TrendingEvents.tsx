@@ -69,8 +69,14 @@ const TrendingEvents = () => {
     }, 500);
   };
 
-  const handleEventClick = (eventId: string) => {
-    navigate(`/event/${eventId}`);
+  const handleEventClick = (eventId: string, index: number) => {
+    // If already hovered, navigate immediately
+    if (hoveredIndex === index) {
+      navigate(`/event/${eventId}`);
+    } else {
+      // Otherwise, trigger hover first
+      handleMouseEnter(index);
+    }
   };
 
   const handleMouseEnter = (index: number) => {
@@ -164,7 +170,7 @@ const TrendingEvents = () => {
                   }}
                   onMouseEnter={() => handleMouseEnter(idx)}
                   onMouseLeave={handleMouseLeave}
-                  onClick={() => handleEventClick(event.id)}
+                  onClick={() => handleEventClick(event.id, idx)}
                 >
                   <div
                     className={`group cursor-pointer relative overflow-hidden rounded-2xl transition-all duration-300 ${
