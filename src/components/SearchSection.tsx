@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Calendar, Filter, Sparkles, X, Loader } from 'lucide-react';
+import { Search, MapPin, Calendar, Filter, Sparkles, X, Loader as LoaderIcon } from 'lucide-react';
+import { Loader } from '@googlemaps/js-api-loader'; // Import Google Maps Loader
 import { EventService } from '../services/eventService';
 
 const SearchSection = () => {
@@ -130,25 +131,50 @@ const SearchSection = () => {
           const { latitude, longitude } = position.coords;
 
           try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-            );
-            const data = await response.json();
+            // Load Google Maps API
+            const loader = new Loader({
+              apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+              version: "weekly",
+              libraries: ["places"]
+            });
 
-            const city = data.address.city ||
-                        data.address.town ||
-                        data.address.village ||
-                        data.address.state ||
-                        'Ghana';
+            await loader.load();
+            
+            // Use Geocoder
+            const geocoder = new google.maps.Geocoder();
+            const response = await geocoder.geocode({ 
+              location: { lat: latitude, lng: longitude } 
+            });
 
-            setLocation(city);
+            if (response.results[0]) {
+              // Extract the most relevant city/locality name
+              const addressComponents = response.results[0].address_components;
+              
+              // Try to find the 'locality' (city) or 'administrative_area_level_1' (region)
+              const cityComponent = addressComponents.find(
+                (component) => 
+                  component.types.includes('locality') || 
+                  component.types.includes('administrative_area_level_1')
+              );
+              
+              const detectedLocation = cityComponent 
+                ? cityComponent.long_name 
+                : response.results[0].formatted_address;
+
+              setLocation(detectedLocation);
+            } else {
+              // Fallback if no results found
+              setLocation('Accra, Ghana');
+            }
           } catch (error) {
+            console.error("Geocoding error:", error);
             setLocation('Accra, Ghana');
           } finally {
             setIsLoadingLocation(false);
           }
         },
         (error) => {
+          console.warn("Geolocation error:", error);
           setLocation('Accra, Ghana');
           setIsLoadingLocation(false);
         }
@@ -269,7 +295,7 @@ const SearchSection = () => {
               <div className="relative">
                 <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
                 {isLoadingLocation && (
-                  <Loader className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 animate-spin z-10" />
+                  <LoaderIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 animate-spin z-10" />
                 )}
                 <input
                   ref={locationInputRef}
